@@ -66,3 +66,69 @@
 .btn-secondary:hover {
   border-color: #667eea;
 }
+
+.host-lobby {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background-color: #0f0f0f;
+  color: #ffffff;
+  padding: 20px;
+}
+
+.room-code {
+  font-size: 6rem;
+  font-weight: 800;
+  margin-bottom: 0.5rem;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  letter-spacing: 0.1em;
+}
+
+.room-label {
+  font-size: 1.5rem;
+  color: #a0a0a0;
+  margin-bottom: 3rem;
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+}
+
+.players-section {
+  width: 100%;
+  max-width: 400px;
+  margin-bottom: 3rem;
+}
+
+.players-section h2 {
+  font-size: 1.5rem;
+  margin-bottom: 1.5rem;
+  text-align: center;
+  color: #ffffff;
+}
+
+.players-list {
+  list-style: none;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.player-item {
+  background: #1f1f1f;
+  padding: 1rem 1.5rem;
+  border-radius: 8px;
+  font-size: 1.1rem;
+  text-align: center;
+  border: 1px solid #333;
+}
+
+.btn-large {
+  font-size: 1.5rem;
+  padding: 1.25rem 3rem;
+  min-width: 250px;
+}
