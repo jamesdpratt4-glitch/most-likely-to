@@ -1,17 +1,18 @@
 import { useState, useEffect } from 'react'
-import { useParams } from 'react-router-dom'
+import { useParams, useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 
 function PlayerLobby() {
   const { code } = useParams()
+  const navigate = useNavigate()
   const [players, setPlayers] = useState([])
 
   useEffect(() => {
     // Fetch initial players
     fetchPlayers()
 
-    // Subscribe to real-time changes
-    const channel = supabase
+    // Subscribe to players changes
+    const playersChannel = supabase
       .channel(`players:${code}`)
       .on(
         'postgres_changes',
@@ -21,16 +22,36 @@ function PlayerLobby() {
           table: 'players',
           filter: `room_code=eq.${code}`
         },
-        (payload) => {
+        () => {
           fetchPlayers()
         }
       )
       .subscribe()
 
+    // Subscribe to room changes to detect when game starts
+    const roomChannel = supabase
+      .channel(`room:${code}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'rooms',
+          filter: `code=eq.${code}`
+        },
+        (payload) => {
+          if (payload.new.status === 'playing') {
+            navigate(`/game/${code}`)
+          }
+        }
+      )
+      .subscribe()
+
     return () => {
-      supabase.removeChannel(channel)
+      supabase.removeChannel(playersChannel)
+      supabase.removeChannel(roomChannel)
     }
-  }, [code])
+  }, [code, navigate])
 
   const fetchPlayers = async () => {
     const { data, error } = await supabase

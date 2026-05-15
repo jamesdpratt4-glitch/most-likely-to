@@ -187,3 +187,142 @@
   color: #a0a0a0;
   text-align: center;
 }
+
+.game {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background-color: #0f0f0f;
+  color: #ffffff;
+  padding: 20px;
+}
+
+.timer {
+  font-size: 2rem;
+  font-weight: 700;
+  margin-bottom: 2rem;
+  color: #667eea;
+}
+
+.question-card {
+  background: #1f1f1f;
+  padding: 2rem 3rem;
+  border-radius: 16px;
+  border: 2px solid #333;
+  margin-bottom: 3rem;
+  max-width: 600px;
+  text-align: center;
+}
+
+.question-text {
+  font-size: 1.5rem;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.vote-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  width: 100%;
+  max-width: 400px;
+}
+
+.vote-btn {
+  font-size: 1.25rem;
+  font-weight: 600;
+  padding: 1rem 2rem;
+  border-radius: 12px;
+  border: 2px solid #333;
+  background: #1f1f1f;
+  color: #ffffff;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.vote-btn:hover:not(.disabled) {
+  border-color: #667eea;
+  transform: translateY(-2px);
+}
+
+.vote-btn.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.voted-message {
+  font-size: 1.25rem;
+  color: #667eea;
+  margin-top: 1.5rem;
+  font-weight: 600;
+}
+
+.game.results {
+  justify-content: flex-start;
+  padding-top: 4rem;
+}
+
+.results-title {
+  font-size: 3rem;
+  font-weight: 700;
+  margin-bottom: 3rem;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.vote-chart {
+  width: 100%;
+  max-width: 500px;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  margin-bottom: 3rem;
+}
+
+.vote-bar {
+  background: #1f1f1f;
+  border-radius: 8px;
+  padding: 1rem 1.5rem;
+  border: 2px solid #333;
+  overflow: hidden;
+}
+
+.vote-bar.winner {
+  border-color: #667eea;
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+}
+
+.vote-bar-label {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+  position: relative;
+  z-index: 1;
+}
+
+.vote-bar-fill {
+  height: 8px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 4px;
+  transition: width 0.5s ease;
+}
+
+.vote-bar.winner .vote-bar-fill {
+  background: linear-gradient(135deg, #ffd700 0%, #ffaa00 100%);
+}
+
+.winner-message {
+  text-align: center;
+  margin-bottom: 3rem;
+}
+
+.winner-message h3 {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: #ffd700;
+}

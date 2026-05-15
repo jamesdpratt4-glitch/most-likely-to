@@ -3,6 +3,7 @@ import { Routes, Route, useNavigate } from 'react-router-dom'
 import { supabase } from './lib/supabase'
 import HostLobby from './pages/HostLobby'
 import PlayerLobby from './pages/PlayerLobby'
+import Game from './pages/Game'
 import './App.css'
 
 function Home() {
@@ -113,6 +114,7 @@ function App() {
       <Route path="/" element={<Home />} />
       <Route path="/host/:code" element={<HostLobby />} />
       <Route path="/lobby/:code" element={<PlayerLobby />} />
+      <Route path="/game/:code" element={<Game />} />
     </Routes>
   )
 }

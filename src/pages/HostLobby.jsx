@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react'
-import { useParams } from 'react-router-dom'
+import { useParams, useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
+import { questions } from '../data/questions'
 
 function HostLobby() {
   const { code } = useParams()
+  const navigate = useNavigate()
   const [players, setPlayers] = useState([])
 
   useEffect(() => {
@@ -43,6 +45,22 @@ function HostLobby() {
     }
   }
 
+  const handleStartGame = async () => {
+    const randomQuestion = questions[Math.floor(Math.random() * questions.length)]
+    
+    const { error } = await supabase
+      .from('rooms')
+      .update({
+        status: 'playing',
+        current_question: randomQuestion
+      })
+      .eq('code', code)
+    
+    if (!error) {
+      navigate(`/game/${code}?host=true`)
+    }
+  }
+
   return (
     <div className="host-lobby">
       <h1 className="room-code">{code}</h1>
@@ -57,7 +75,7 @@ function HostLobby() {
         </ul>
       </div>
 
-      <button className="btn btn-primary btn-large">Start Game</button>
+      <button className="btn btn-primary btn-large" onClick={handleStartGame}>Start Game</button>
     </div>
   )
 }
