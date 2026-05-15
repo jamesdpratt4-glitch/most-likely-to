@@ -41,6 +41,15 @@ function Game() {
           if (payload.new.status === 'waiting') {
             window.location.href = isHost ? `/host/${code}` : `/lobby/${code}`
           }
+          // If current_question changes (new round), reset voting state
+          if (payload.old.current_question !== payload.new.current_question) {
+            setShowResults(false)
+            setHasVoted(false)
+            setTimeLeft(15)
+            setVotes([])
+            setWinner(null)
+            setRoundNumber(prev => prev + 1)
+          }
         }
       )
       .subscribe()
