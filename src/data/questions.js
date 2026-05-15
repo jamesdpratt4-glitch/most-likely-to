@@ -1,0 +1,22 @@
+export const questions = [
+  "Most likely to wake up with a hangover and not remember the night before",
+  "Most likely to accidentally text their ex while drunk",
+  "Most likely to start a dance floor at a party",
+  "Most likely to lose their phone during a night out",
+  "Most likely to confess their deepest secrets after a few drinks",
+  "Most likely to order pizza at 3 AM",
+  "Most likely to become the designated parent of the friend group",
+  "Most likely to get into a heated debate about something trivial",
+  "Most likely to accidentally send a work email to the wrong person",
+  "Most likely to cry during a movie when no one else is",
+  "Most likely to adopt too many pets",
+  "Most likely to become a meme without knowing it",
+  "Most likely to survive a zombie apocalypse",
+  "Most likely to accidentally join a cult",
+  "Most likely to forget their own birthday",
+  "Most likely to become a conspiracy theorist",
+  "Most likely to accidentally reveal a surprise party",
+  "Most likely to get lost in their own neighborhood",
+  "Most likely to become a TikTok famous overnight",
+  "Most likely to accidentally wear their clothes inside out all day"
+]
