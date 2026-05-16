@@ -496,35 +496,21 @@ function Game() {
 
       for (const winnerNickname of roundWinners) {
         console.log("=== PROCESSING WINNER ===", winnerNickname)
-        // First get current drink count
-        const { data: playerData } = await supabase
+        // Use atomic increment to prevent race conditions
+        const votesReceived = voteCounts[winnerNickname] || 0
+        console.log("=== DRINK COUNT INCREMENT ===", { 
+          winnerNickname, 
+          votesReceived,
+          roundNumber
+        })
+        
+        const { error: updateError } = await supabase
           .from('players')
-          .select('drink_count')
+          .update({ drink_count: supabase.raw(`drink_count + ${votesReceived}`) })
           .eq('room_code', code.toLowerCase())
           .eq('nickname', winnerNickname)
-          .single()
         
-        console.log("=== UPDATE DRINK COUNT ===", { winnerNickname, playerData, voteCounts })
-        
-        if (playerData) {
-          const votesReceived = voteCounts[winnerNickname] || 0
-          const newDrinkCount = (playerData.drink_count || 0) + votesReceived
-          console.log("=== DRINK COUNT UPDATE ===", { 
-            winnerNickname, 
-            currentCount: playerData.drink_count, 
-            votesReceived, 
-            newCount: newDrinkCount,
-            roundNumber
-          })
-          
-          const { error: updateError } = await supabase
-            .from('players')
-            .update({ drink_count: newDrinkCount })
-            .eq('room_code', code.toLowerCase())
-            .eq('nickname', winnerNickname)
-          
-          console.log("=== DRINK COUNT UPDATE RESULT ===", { error: updateError })
-        }
+        console.log("=== DRINK COUNT UPDATE RESULT ===", { error: updateError })
       }
     }
   }
