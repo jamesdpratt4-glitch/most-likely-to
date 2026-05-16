@@ -126,8 +126,10 @@ function Game() {
           if (payload.new.status === 'ended') {
             navigate('/game-over')
           }
-          // If current_question changes (new round), reset voting state
-          if (payload.old.current_question !== payload.new.current_question) {
+          // Only reset voting state if current_question changes AND round_number increases
+          // This prevents resetting showResults when other room fields are updated
+          if (payload.old.current_question !== payload.new.current_question && 
+              payload.new.round_number > (payload.old.round_number || 0)) {
             setShowResults(false)
             setHasVoted(false)
             setTimeLeft(15)
