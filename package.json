@@ -1,7 +1,7 @@
 {
   "name": "most-likely-to",
   "private": true,
-  "version": "1.0.44",
+  "version": "1.0.45",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -11,9 +11,9 @@
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.105.4",
+    "qrcode": "^1.5.4",
     "react": "^19.2.6",
     "react-dom": "^19.2.6",
-    "react-qr-code": "^2.0.21",
     "react-router-dom": "^7.15.1"
   },
   "devDependencies": {

@@ -2,13 +2,13 @@ import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { questions } from '../data/questions'
-import QRCode from 'react-qr-code'
+import QRCode from 'qrcode'
 
 function HostLobby() {
   const { code } = useParams()
   const navigate = useNavigate()
   const [players, setPlayers] = useState([])
-  const [qrUrl, setQrUrl] = useState('')
+  const [qrDataUrl, setQrDataUrl] = useState('')
 
   useEffect(() => {
     const validateAndLoad = async () => {
@@ -53,8 +53,15 @@ function HostLobby() {
         return
       }
 
-      // Set QR URL after component is mounted
-      setQrUrl(`${window.location.origin}/join/${code}`)
+      // Generate QR code data URL after component is mounted
+      const joinUrl = `${window.location.origin}/join/${code}`
+      QRCode.toDataURL(joinUrl, { width: 200, margin: 1 }, (err, url) => {
+        if (err) {
+          console.error('Error generating QR code:', err)
+        } else {
+          setQrDataUrl(url)
+        }
+      })
 
       // Fetch initial players
       fetchPlayers()
@@ -118,10 +125,7 @@ function HostLobby() {
       <div className="qr-section">
         <p className="qr-label">Scan to join</p>
         <div className="qr-code">
-          {/* QR code temporarily disabled for debugging */}
-          <div style={{ width: 200, height: 200, background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#000' }}>
-            QR Code
-          </div>
+          {qrDataUrl && <img src={qrDataUrl} alt="QR Code" style={{ width: '200px', height: '200px' }} />}
         </div>
       </div>
       
