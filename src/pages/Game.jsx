@@ -83,6 +83,7 @@ function Game() {
           filter: `code=eq.${code.toLowerCase()}`
         },
         (payload) => {
+          console.log("=== ROOM SUBSCRIPTION TRIGGERED ===", payload)
           setRoom(payload.new)
           // Sync round number from database
           if (payload.new.round_number !== undefined) {
@@ -94,6 +95,7 @@ function Game() {
           }
           // If room status changes to 'ended', redirect to home and clear localStorage
           if (payload.new.status === 'ended') {
+            console.log("=== GAME ENDED DETECTED - REDIRECTING TO HOME ===")
             localStorage.removeItem('nickname')
             localStorage.removeItem('roomCode')
             localStorage.removeItem('isHost')
