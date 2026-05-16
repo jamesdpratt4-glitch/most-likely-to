@@ -6,7 +6,7 @@ import PlayerLobby from './pages/PlayerLobby'
 import Game from './pages/Game'
 import './App.css'
 
-const APP_VERSION = "1.0.9"
+const APP_VERSION = "1.0.10"
 
 function Home() {
   const navigate = useNavigate()
@@ -16,6 +16,8 @@ function Home() {
   const [nickname, setNickname] = useState('')
   const [hostNickname, setHostNickname] = useState('')
   const [error, setError] = useState('')
+  const [showDevModal, setShowDevModal] = useState(false)
+  const [activeRooms, setActiveRooms] = useState([])
 
   const generateRoomCode = () => {
     return Math.floor(1000 + Math.random() * 9000).toString()
@@ -114,6 +116,43 @@ function Home() {
     navigate(`/lobby/${roomCode}`)
   }
 
+  const fetchActiveRooms = async () => {
+    const { data, error } = await supabase
+      .from('rooms')
+      .select('*')
+    
+    if (data) {
+      setActiveRooms(data)
+    }
+  }
+
+  const killAllRooms = async () => {
+    const { error } = await supabase
+      .from('rooms')
+      .delete()
+      .not('code', 'is', null)
+    
+    const { error: playersError } = await supabase
+      .from('players')
+      .delete()
+      .not('nickname', 'is', null)
+    
+    const { error: votesError } = await supabase
+      .from('votes')
+      .delete()
+      .not('voter_nickname', 'is', null)
+    
+    if (!error && !playersError && !votesError) {
+      setActiveRooms([])
+      alert('All rooms have been killed successfully')
+    }
+  }
+
+  const handleDevClick = () => {
+    fetchActiveRooms()
+    setShowDevModal(true)
+  }
+
   return (
     <div className="app">
       <h1 className="title">Most Likely To</h1>
@@ -167,6 +206,55 @@ function Home() {
       <div className="version-number" style={{ position: 'fixed', bottom: '10px', right: '10px', opacity: 0.6, fontSize: '14px', color: '#000000', zIndex: 9999, fontWeight: 'bold' }}>
         v{APP_VERSION}
       </div>
+      
+      <button 
+        className="dev-button" 
+        onClick={handleDevClick}
+        style={{ position: 'fixed', bottom: '10px', left: '10px', opacity: 0.3, fontSize: '10px', color: '#666', zIndex: 9999, background: 'none', border: 'none', cursor: 'pointer' }}
+      >
+        DEV
+      </button>
+      
+      {showDevModal && (
+        <div className="dev-modal" style={{ position: 'fixed', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', backgroundColor: '#1a1a1a', padding: '2rem', borderRadius: '8px', zIndex: 10000, minWidth: '400px', maxHeight: '80vh', overflow: 'auto' }}>
+          <h2 style={{ color: '#ffffff', marginBottom: '1rem' }}>Dev Tools</h2>
+          <h3 style={{ color: '#a0a0a0', marginBottom: '0.5rem' }}>Active Rooms ({activeRooms.length})</h3>
+          <div style={{ marginBottom: '1rem', maxHeight: '200px', overflow: 'auto' }}>
+            {activeRooms.length === 0 ? (
+              <p style={{ color: '#666' }}>No active rooms</p>
+            ) : (
+              <ul style={{ color: '#a0a0a0', listStyle: 'none', padding: 0 }}>
+                {activeRooms.map(room => (
+                  <li key={room.code} style={{ marginBottom: '0.5rem', padding: '0.5rem', backgroundColor: '#2a2a2a', borderRadius: '4px' }}>
+                    <strong>Code:</strong> {room.code} | <strong>Status:</strong> {room.status}
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+          <button 
+            className="btn btn-primary" 
+            onClick={killAllRooms}
+            style={{ backgroundColor: '#ff4444', marginRight: '0.5rem' }}
+          >
+            Kill All Rooms
+          </button>
+          <button 
+            className="btn btn-secondary" 
+            onClick={() => setShowDevModal(false)}
+          >
+            Close
+          </button>
+        </div>
+      )}
+      
+      {showDevModal && (
+        <div 
+          className="dev-modal-overlay"
+          onClick={() => setShowDevModal(false)}
+          style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0, 0, 0, 0.7)', zIndex: 9999 }}
+        />
+      )}
     </div>
   )
 }
