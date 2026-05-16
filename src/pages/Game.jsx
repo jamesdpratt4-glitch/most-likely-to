@@ -19,6 +19,7 @@ function Game() {
   const [winner, setWinner] = useState(null)
   const [winners, setWinners] = useState([])
   const [isEndingVoting, setIsEndingVoting] = useState(false)
+  const [processedRound, setProcessedRound] = useState(null)
   
   const myNickname = localStorage.getItem('nickname')
 
@@ -428,6 +429,14 @@ function Game() {
   const endVoting = async () => {
     console.log("=== END VOTING - CALCULATING RESULTS ===");
     
+    // Prevent duplicate processing of the same round
+    if (processedRound === roundNumber) {
+      console.log("=== ROUND ALREADY PROCESSED ===", { processedRound, roundNumber })
+      return
+    }
+    setProcessedRound(roundNumber)
+    console.log("=== PROCESSING NEW ROUND ===", roundNumber)
+    
     // Fetch fresh votes from database for current round
     const { data: freshVotes } = await supabase
       .from('votes')
@@ -537,6 +546,7 @@ function Game() {
       .eq('code', code.toLowerCase())
     
     // Reset state for new round
+    setProcessedRound(null)
     setShowResults(false)
     setShowSummary(false)
     setHasVoted(false)
@@ -558,7 +568,6 @@ function Game() {
   const handleContinueFromSummary = async () => {
     const { questions } = await import('../data/questions')
     const randomQuestion = questions[Math.floor(Math.random() * questions.length)]
-    
     const newRoundNumber = roundNumber + 1
     const roundEndTime = new Date(Date.now() + 15 * 1000).toISOString()
     
@@ -573,6 +582,7 @@ function Game() {
       .eq('code', code.toLowerCase())
     
     // Reset state for new round
+    setProcessedRound(null)
     setShowResults(false)
     setShowSummary(false)
     setHasVoted(false)
