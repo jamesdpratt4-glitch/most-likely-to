@@ -152,7 +152,14 @@ function Game() {
         setTimeLeft((prev) => {
           if (prev <= 1) {
             clearInterval(timer)
-            endVoting()
+            // Only end voting if not all players have voted (auto-advance handles that case)
+            const uniqueVoters = new Set(votes.map(v => v.voter_nickname))
+            if (uniqueVoters.size < players.length) {
+              console.log("⏰ Timer ended but not all players voted. Ending voting.")
+              endVoting()
+            } else {
+              console.log("⏰ Timer ended but all players already voted. Auto-advance handled it.")
+            }
             return 0
           }
           return prev - 1
@@ -161,7 +168,7 @@ function Game() {
 
       return () => clearInterval(timer)
     }
-  }, [room, showResults])
+  }, [room, showResults, votes, players])
 
   useEffect(() => {
     // Fetch fresh votes when results are shown (for non-host players)
@@ -412,11 +419,22 @@ function Game() {
     // Update all winners' drink count
     if (roundWinners.length > 0) {
       for (const winnerNickname of roundWinners) {
-        await supabase
+        // First get current drink count
+        const { data: playerData } = await supabase
           .from('players')
-          .update({ drink_count: supabase.raw('drink_count + 1') })
+          .select('drink_count')
           .eq('room_code', code.toLowerCase())
           .eq('nickname', winnerNickname)
+          .single()
+        
+        if (playerData) {
+          const newDrinkCount = (playerData.drink_count || 0) + 1
+          await supabase
+            .from('players')
+            .update({ drink_count: newDrinkCount })
+            .eq('room_code', code.toLowerCase())
+            .eq('nickname', winnerNickname)
+        }
       }
     }
   }
