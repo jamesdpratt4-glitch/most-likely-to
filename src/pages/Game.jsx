@@ -308,41 +308,62 @@ function Game() {
 
     // After successful vote, manually check if all players have voted
     console.log("=== MANUAL VOTE COMPLETION CHECK AFTER VOTE ===");
-    await fetchVotes()
     
-    // Small delay to ensure votes state is updated
+    // Small delay to ensure vote is in database
     setTimeout(async () => {
+      // Query database directly instead of relying on local state
       const { data: allPlayers } = await supabase
         .from('players')
         .select('nickname')
         .eq('room_code', code.toLowerCase())
       
-      if (allPlayers) {
-        const uniqueVoters = new Set(votes.map(v => v.voter_nickname))
+      const { data: allVotes } = await supabase
+        .from('votes')
+        .select('voter_nickname')
+        .eq('room_code', code.toLowerCase())
+        .eq('round_number', roundNumber)
+      
+      if (allPlayers && allVotes) {
+        const uniqueVoters = new Set(allVotes.map(v => v.voter_nickname))
         console.log("Players count:", allPlayers.length);
         console.log("Unique voters count:", uniqueVoters.size);
-        console.log("Votes array:", votes);
+        console.log("Votes from DB:", allVotes);
         
         if (allPlayers.length > 0 && uniqueVoters.size >= allPlayers.length && !showResults && !isEndingVoting) {
           console.log("✅ MANUAL CHECK: All players have voted! Ending voting period.");
           setIsEndingVoting(true)
           endVoting()
+        } else {
+          console.log("❌ MANUAL CHECK: Not all players have voted yet.");
         }
       }
     }, 500)
   }
 
   const endVoting = async () => {
-    setShowResults(true)
-    
     console.log("=== END VOTING - CALCULATING RESULTS ===");
-    console.log("Total votes array:", votes);
-    console.log("Total votes count:", votes.length);
+    
+    // Fetch fresh votes from database for current round
+    const { data: freshVotes } = await supabase
+      .from('votes')
+      .select('*')
+      .eq('room_code', code.toLowerCase())
+      .eq('round_number', roundNumber)
+    
+    console.log("Fresh votes from DB:", freshVotes);
+    console.log("Fresh votes count:", freshVotes?.length);
     console.log("Players in room:", players);
     
-    // Calculate winner(s)
+    // Update local votes state with fresh data
+    if (freshVotes) {
+      setVotes(freshVotes)
+    }
+    
+    setShowResults(true)
+    
+    // Calculate winner(s) using fresh votes
     const voteCounts = {}
-    votes.forEach(vote => {
+    freshVotes?.forEach(vote => {
       voteCounts[vote.voted_for] = (voteCounts[vote.voted_for] || 0) + 1
     })
     
