@@ -187,9 +187,7 @@ function Game() {
       .channel(`reveal_votes:${code.toLowerCase()}`)
       .on('broadcast', { event: 'reveal_votes' }, (payload) => {
         console.log("=== REVEAL VOTES BROADCAST ===", payload)
-        if (payload.payload.roundNumber === roundNumber) {
-          setShowDetailedVotes(true)
-        }
+        setShowDetailedVotes(true)
       })
       .subscribe()
 
