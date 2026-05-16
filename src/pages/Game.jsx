@@ -674,7 +674,7 @@ function Game() {
   }
 
   if (!room || room.status === 'waiting') {
-    return <div className="game">Loading...</div>
+    return <div className="min-h-screen flex flex-col items-center justify-center bg-[#0f0f0f] text-white p-5">Loading...</div>
   }
 
   if (showSummary) {
@@ -690,37 +690,38 @@ function Game() {
     })
 
     return (
-      <div className="game results">
-        <h2 className="results-title">Round {roundNumber} Summary</h2>
-        <p style={{ marginBottom: '2rem', color: '#a0a0a0' }}>Total drinks after {roundNumber} rounds</p>
+      <div className="min-h-screen flex flex-col items-center justify-center bg-[#0f0f0f] text-white p-5">
+        <h2 className="text-4xl font-bold mb-2 text-[#667eea]">Round {roundNumber} Summary</h2>
+        <p className="mb-8 text-gray-400">Total drinks after {roundNumber} rounds</p>
         
-        <div className="vote-chart">
+        <div className="w-full max-w-2xl space-y-4">
           {sortedPlayers.map(player => (
-            <div key={player.nickname} className="vote-bar">
-              <div className="vote-bar-label">
-                <span>
-                  {player.emoji && <span style={{ marginRight: '0.5rem' }}>{player.emoji}</span>}
+            <div key={player.nickname} className="w-full">
+              <div className="flex justify-between items-center mb-2">
+                <span className="flex items-center">
+                  {player.emoji && <span className="mr-2">{player.emoji}</span>}
                   {player.nickname}
                 </span>
                 <span>{player.drink_count || 0} drinks</span>
               </div>
               <div 
-                className="vote-bar-fill" 
+                className="h-2 bg-[#1a1a2e] rounded-full overflow-hidden"
                 style={{ width: `${sortedPlayers.length > 0 ? ((player.drink_count || 0) / sortedPlayers[0].drink_count) * 100 : 0}%` }}
-              />
+              >
+                <div className="h-full bg-[#667eea]" style={{ width: '100%' }} />
+              </div>
             </div>
           ))}
         </div>
         
         {isHost && (
-          <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', marginTop: '2rem' }}>
-            <button className="btn btn-primary btn-large" onClick={handleContinueFromSummary}>
+          <div className="flex gap-4 justify-center mt-8 flex-wrap">
+            <button className="text-xl font-semibold py-4 px-10 rounded-lg border-none cursor-pointer transition-transform hover:-translate-y-0.5 hover:shadow-lg min-w-[200px] bg-[#667eea] text-white" onClick={handleContinueFromSummary}>
               Next Round
             </button>
             <button 
-              className="btn btn-secondary btn-large" 
+              className="text-xl font-semibold py-4 px-10 rounded-lg border-none cursor-pointer transition-transform hover:-translate-y-0.5 hover:shadow-lg min-w-[200px] bg-[#ff4444] text-white"
               onClick={handleEndGame}
-              style={{ backgroundColor: '#ff4444' }}
             >
               End Game
             </button>
@@ -728,7 +729,7 @@ function Game() {
         )}
 
         {!isHost && (
-          <div style={{ marginTop: '2rem', color: '#a0a0a0', fontSize: '0.9rem' }}>
+          <div className="mt-8 text-gray-400 text-sm">
             Waiting for host to start next round...
           </div>
         )}
@@ -748,10 +749,10 @@ function Game() {
     const maxVotes = Math.max(...Object.values(voteCounts), 0)
 
     return (
-      <div className="game results">
-        <h2 className="results-title">Results</h2>
+      <div className="min-h-screen flex flex-col items-center justify-center bg-[#0f0f0f] text-white p-5">
+        <h2 className="text-4xl font-bold mb-8 text-[#667eea]">Results</h2>
         
-        <div className="vote-chart">
+        <div className="w-full max-w-2xl space-y-4">
           {players.map(player => {
             const count = voteCounts[player.nickname] || 0
             const percentage = activePlayers.length > 0 ? (count / activePlayers.length) * 100 : 0
@@ -760,20 +761,22 @@ function Game() {
             const votersForPlayer = resultsVotes.filter(v => v.voted_for === player.nickname)
             
             return (
-              <div key={player.nickname} className={`vote-bar ${isWinner ? 'winner' : ''} ${isRemoved ? 'removed' : ''}`}>
-                <div className="vote-bar-label">
-                  <span>
-                    {player.emoji && <span style={{ marginRight: '0.5rem' }}>{player.emoji}</span>}
+              <div key={player.nickname} className={`w-full ${isWinner ? 'ring-2 ring-[#667eea]' : ''} ${isRemoved ? 'opacity-50' : ''}`}>
+                <div className="flex justify-between items-center mb-2">
+                  <span className="flex items-center">
+                    {player.emoji && <span className="mr-2">{player.emoji}</span>}
                     {player.nickname}{isRemoved ? ' (removed)' : ''}
                   </span>
                   <span>{count} votes</span>
                 </div>
                 <div 
-                  className="vote-bar-fill" 
+                  className="h-2 bg-[#1a1a2e] rounded-full overflow-hidden"
                   style={{ width: `${percentage}%` }}
-                />
+                >
+                  <div className={`h-full ${isWinner ? 'bg-[#667eea]' : 'bg-[#ff6b6b]'}`} style={{ width: '100%' }} />
+                </div>
                 {showDetailedVotes && votersForPlayer.length > 0 && (
-                  <div style={{ marginTop: '0.5rem', fontSize: '0.85rem', color: '#a0a0a0' }}>
+                  <div className="mt-2 text-sm text-gray-400">
                     Voted by: {votersForPlayer.map(v => v.voter_nickname).join(', ')}
                   </div>
                 )}
@@ -783,7 +786,7 @@ function Game() {
         </div>
         
         {winners.length > 0 && (
-          <div className="winner-message">
+          <div className="mt-8 text-2xl font-bold">
             {winners.length === 1 ? (
               <h3>{winners[0]} drinks! 🍺</h3>
             ) : (
@@ -793,19 +796,18 @@ function Game() {
         )}
         
         {isHost && (
-          <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', flexWrap: 'wrap' }}>
-            <button className="btn btn-primary btn-large" onClick={handleNextRound}>
+          <div className="flex gap-4 justify-center flex-wrap">
+            <button className="text-xl font-semibold py-4 px-10 rounded-lg border-none cursor-pointer transition-transform hover:-translate-y-0.5 hover:shadow-lg min-w-[200px] bg-[#667eea] text-white" onClick={handleNextRound}>
               Next Round
             </button>
             <button 
-              className="btn btn-secondary btn-large" 
+              className="text-xl font-semibold py-4 px-10 rounded-lg border-none cursor-pointer transition-transform hover:-translate-y-0.5 hover:shadow-lg min-w-[200px] bg-[#667eea] text-white"
               onClick={handleShowSummary}
-              style={{ backgroundColor: '#667eea' }}
             >
               Drinks So Far
             </button>
             <button 
-              className="btn btn-secondary btn-large" 
+              className="text-xl font-semibold py-4 px-10 rounded-lg border-none cursor-pointer transition-transform hover:-translate-y-0.5 hover:shadow-lg min-w-[200px] bg-[#ff6b6b] text-white"
               onClick={async () => {
                 setShowDetailedVotes(true)
                 // Broadcast reveal votes event to all clients
@@ -818,14 +820,12 @@ function Game() {
                   })
               }}
               disabled={showDetailedVotes}
-              style={{ backgroundColor: '#ff6b6b' }}
             >
               {showDetailedVotes ? 'Votes Revealed' : 'Reveal Votes'}
             </button>
             <button 
-              className="btn btn-secondary btn-large" 
+              className="text-xl font-semibold py-4 px-10 rounded-lg border-none cursor-pointer transition-transform hover:-translate-y-0.5 hover:shadow-lg min-w-[200px] bg-[#ff4444] text-white"
               onClick={handleEndGame}
-              style={{ backgroundColor: '#ff4444' }}
             >
               End Game
             </button>
@@ -833,17 +833,17 @@ function Game() {
         )}
 
         {isHost && (
-          <div className="players-section" style={{ marginTop: '2rem' }}>
-            <h3>Players ({activePlayers.length})</h3>
-            <ul className="players-list">
+          <div className="mt-8 w-full max-w-md">
+            <h3 className="text-xl font-medium mb-4">Players ({activePlayers.length})</h3>
+            <ul className="list-none p-0 space-y-2">
               {activePlayers.map((player, index) => (
-                <li key={index} className="player-item">
-                  <span>
-                    {player.emoji && <span style={{ marginRight: '0.5rem' }}>{player.emoji}</span>}
+                <li key={index} className="flex items-center justify-between p-3 bg-[#1a1a2e] rounded-lg">
+                  <span className="flex items-center">
+                    {player.emoji && <span className="mr-2">{player.emoji}</span>}
                     {player.nickname}
                   </span>
                   <button 
-                    className="remove-player-btn"
+                    className="ml-2 text-sm text-[#ff6b6b] bg-none border-none cursor-pointer hover:text-[#ff4444]"
                     onClick={() => handleRemovePlayer(player.nickname)}
                     title="Remove player"
                   >
@@ -861,35 +861,35 @@ function Game() {
   const votingPlayers = players
 
   return (
-    <div className="game">
-      <div className="timer">Time left: {timeLeft}s</div>
+    <div className="min-h-screen flex flex-col items-center justify-center bg-[#0f0f0f] text-white p-5">
+      <div className="text-lg mb-2">Time left: {timeLeft}s</div>
       
       {/* Live vote counter */}
-      <div className="vote-counter">
+      <div className="text-sm text-gray-400 mb-2">
         {new Set(votes.map(v => v.voter_nickname)).size} / {players.length} votes cast
       </div>
       
       {/* Debug info */}
-      <div style={{ fontSize: '10px', color: '#666', marginBottom: '10px' }}>
+      <div className="text-xs text-gray-600 mb-2">
         Players: {players.length} | Votes: {votes.length} | Round: {roundNumber}
       </div>
       
-      <div className="question-card">
-        <h2 className="question-text">{room.current_question}</h2>
+      <div className="w-full max-w-2xl bg-[#1a1a2e] p-8 rounded-lg mb-8">
+        <h2 className="text-2xl font-bold text-center">{room.current_question}</h2>
       </div>
       
-      <div className="players-section">
-        <h3>Vote for:</h3>
-        <div className="vote-buttons" style={hasVoted ? { opacity: 0.5, pointerEvents: 'none' } : {}}>
+      <div className="w-full max-w-2xl">
+        <h3 className="text-xl font-medium mb-4">Vote for:</h3>
+        <div className="grid grid-cols-2 gap-4" style={hasVoted ? { opacity: 0.5, pointerEvents: 'none' } : {}}>
           {votingPlayers.map(player => {
             const isSelf = player.nickname === myNickname
             return (
               <button
                 key={player.nickname}
-                className={`btn vote-btn ${hasVoted ? 'disabled' : ''} ${isSelf ? 'self-vote' : ''}`}
+                className={`text-lg font-semibold py-3 px-6 rounded-lg border-none cursor-pointer transition-transform hover:-translate-y-0.5 hover:shadow-lg ${isSelf ? 'opacity-50 cursor-not-allowed' : ''}`}
                 onClick={() => handleVote(player.nickname)}
                 disabled={hasVoted || isSelf}
-                style={isSelf ? { opacity: 0.5 } : {}}
+                style={{ backgroundColor: isSelf ? '#333' : '#667eea' }}
               >
                 {player.nickname} {isSelf && '(You)'}
               </button>
@@ -898,7 +898,7 @@ function Game() {
         </div>
       </div>
       
-      {hasVoted && <p className="voted-message">Vote submitted! Waiting for other players...</p>}
+      {hasVoted && <p className="mt-4 text-gray-400">Vote submitted! Waiting for other players...</p>}
     </div>
   )
 }

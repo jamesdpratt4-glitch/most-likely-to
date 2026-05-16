@@ -122,23 +122,23 @@ function HostLobby() {
   }
 
   return (
-    <div className="host-lobby">
-      <p className="room-label">Room Code</p>
-      <h1 className="room-code">{code}</h1>
+    <div className="min-h-screen flex flex-col items-center justify-center bg-[#0f0f0f] text-white p-5">
+      <p className="text-gray-400 mb-2">Room Code</p>
+      <h1 className="text-6xl font-bold mb-8 text-[#667eea]">{code}</h1>
       
-      <div className="qr-section">
-        <p className="qr-label">Scan to join</p>
-        <div className="qr-code">
-          {qrDataUrl && <img src={qrDataUrl} alt="QR Code" style={{ width: '200px', height: '200px' }} />}
+      <div className="mb-8 text-center">
+        <p className="text-gray-400 mb-2">Scan to join</p>
+        <div className="bg-white p-2 rounded-lg inline-block">
+          {qrDataUrl && <img src={qrDataUrl} alt="QR Code" className="w-[200px] h-[200px]" />}
         </div>
       </div>
       
-      <div className="players-section">
-        <h2>Players ({players.length})</h2>
-        <ul className="players-list">
+      <div className="mb-8 w-full max-w-md">
+        <h2 className="text-2xl font-medium mb-4">Players ({players.length})</h2>
+        <ul className="list-none p-0 space-y-2">
           {players.map((player, index) => (
-            <li key={index} className="player-item">
-              {player.emoji && <span style={{ marginRight: '0.5rem' }}>{player.emoji}</span>}
+            <li key={index} className="flex items-center gap-2 p-3 bg-[#1a1a2e] rounded-lg">
+              {player.emoji && <span className="mr-2">{player.emoji}</span>}
               {player.nickname}
             </li>
           ))}
@@ -146,7 +146,7 @@ function HostLobby() {
       </div>
 
       <button 
-        className="btn btn-primary btn-large" 
+        className="text-xl font-semibold py-4 px-10 rounded-lg border-none cursor-pointer transition-transform hover:-translate-y-0.5 hover:shadow-lg min-w-[200px] bg-[#667eea] text-white"
         onClick={handleStartGame}
         disabled={players.length < 2}
         style={players.length < 2 ? { opacity: 0.5, cursor: 'not-allowed' } : {}}
@@ -154,7 +154,7 @@ function HostLobby() {
         Start Game
       </button>
       {players.length < 2 && (
-        <p style={{ marginTop: '1rem', color: '#a0a0a0', fontSize: '0.9rem' }}>
+        <p className="mt-4 text-gray-400 text-sm">
           Need at least 2 players to start
         </p>
       )}

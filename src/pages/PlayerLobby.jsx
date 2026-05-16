@@ -98,15 +98,15 @@ function PlayerLobby() {
   }
 
   return (
-    <div className="player-lobby">
-      <h1 className="waiting-message">Waiting for host to start...</h1>
+    <div className="min-h-screen flex flex-col items-center justify-center bg-[#0f0f0f] text-white p-5">
+      <h1 className="text-3xl font-semibold mb-8">Waiting for host to start...</h1>
       
-      <div className="players-section">
-        <h2>Players ({players.length})</h2>
-        <ul className="players-list">
+      <div className="w-full max-w-md">
+        <h2 className="text-2xl font-medium mb-4">Players ({players.length})</h2>
+        <ul className="list-none p-0 space-y-2">
           {players.map((player, index) => (
-            <li key={index} className="player-item">
-              {player.emoji && <span style={{ marginRight: '0.5rem' }}>{player.emoji}</span>}
+            <li key={index} className="flex items-center gap-2 p-3 bg-[#1a1a2e] rounded-lg">
+              {player.emoji && <span className="mr-2">{player.emoji}</span>}
               {player.nickname}
             </li>
           ))}

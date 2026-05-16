@@ -7,9 +7,8 @@ import PlayerLobby from './pages/PlayerLobby'
 import Game from './pages/Game'
 import GameOver from './pages/GameOver'
 import JoinRoom from './pages/JoinRoom'
-import './App.css'
 
-const APP_VERSION = "1.0.92"
+const APP_VERSION = "1.0.93"
 
 function Home() {
   const navigate = useNavigate()
@@ -169,42 +168,42 @@ function Home() {
   }
 
   return (
-    <div className="app">
-      <div className="version-number" style={{ position: 'fixed', top: '10px', left: '50%', transform: 'translateX(-50%)', opacity: 0.7, fontSize: '16px', color: '#000000', zIndex: 9999, fontWeight: 'bold', backgroundColor: 'rgba(255,255,255,0.9)', padding: '4px 12px', borderRadius: '4px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
+    <div className="min-h-screen flex flex-col items-center justify-center bg-[#0f0f0f] text-white p-5">
+      <div className="fixed top-2.5 left-1/2 -translate-x-1/2 opacity-70 text-base text-black z-50 font-bold bg-white/90 px-3 py-1 rounded shadow">
         v{APP_VERSION}
       </div>
-      <h1 className="title">Most Likely To</h1>
-      <p className="subtitle">A multiplayer party game</p>
+      <h1 className="text-6xl font-bold mb-6 text-[#667eea]">Most Likely To</h1>
+      <p className="text-xl text-gray-400 mb-12">A multiplayer party game</p>
       
       {!showJoinForm && !showCreateForm ? (
-        <div className="buttons">
-          <button className="btn btn-primary" onClick={() => setShowCreateForm(true)}>Create Room</button>
-          <button className="btn btn-secondary" onClick={() => setShowJoinForm(true)}>Join Room</button>
+        <div className="flex gap-6 flex-wrap justify-center">
+          <button className="text-xl font-semibold py-4 px-10 rounded-lg border-none cursor-pointer transition-transform hover:-translate-y-0.5 hover:shadow-lg min-w-[200px] bg-[#667eea] text-white" onClick={() => setShowCreateForm(true)}>Create Room</button>
+          <button className="text-xl font-semibold py-4 px-10 rounded-lg border-none cursor-pointer transition-transform hover:-translate-y-0.5 hover:shadow-lg min-w-[200px] bg-[#ff6b6b] text-white" onClick={() => setShowJoinForm(true)}>Join Room</button>
         </div>
       ) : showCreateForm ? (
-        <form className="join-form" onSubmit={(e) => { e.preventDefault(); handleCreateRoom(); }}>
+        <form className="flex flex-col items-center gap-4" onSubmit={(e) => { e.preventDefault(); handleCreateRoom(); }}>
           <input
             type="text"
             placeholder="Your Nickname"
             value={hostNickname}
             onChange={(e) => setHostNickname(e.target.value)}
-            className="input"
+            className="w-full max-w-md px-4 py-3 rounded-lg border border-gray-600 bg-[#1a1a2e] text-white focus:outline-none focus:ring-2 focus:ring-[#667eea]"
           />
-          {error && <p className="error-message">{error}</p>}
-          <div className="form-buttons">
-            <button type="submit" className="btn btn-primary">Create</button>
-            <button type="button" className="btn btn-secondary" onClick={() => { setShowCreateForm(false); setError(''); }}>Cancel</button>
+          {error && <p className="text-[#ff6b6b]">{error}</p>}
+          <div className="flex gap-4">
+            <button type="submit" className="text-xl font-semibold py-4 px-10 rounded-lg border-none cursor-pointer transition-transform hover:-translate-y-0.5 hover:shadow-lg min-w-[200px] bg-[#667eea] text-white">Create</button>
+            <button type="button" className="text-xl font-semibold py-4 px-10 rounded-lg border-none cursor-pointer transition-transform hover:-translate-y-0.5 hover:shadow-lg min-w-[200px] bg-[#ff6b6b] text-white" onClick={() => { setShowCreateForm(false); setError(''); }}>Cancel</button>
           </div>
         </form>
       ) : (
-        <form className="form" onSubmit={handleJoinRoom}>
-          <h2>Join Room</h2>
+        <form className="flex flex-col items-center gap-4" onSubmit={handleJoinRoom}>
+          <h2 className="text-2xl font-medium text-white mb-2">Join Room</h2>
           <input
             type="text"
             placeholder="Room Code"
             value={roomCode}
             onChange={(e) => setRoomCode(e.target.value)}
-            className="input"
+            className="w-full max-w-md px-4 py-3 rounded-lg border border-gray-600 bg-[#1a1a2e] text-white focus:outline-none focus:ring-2 focus:ring-[#667eea]"
             maxLength={4}
           />
           <input
@@ -212,35 +211,34 @@ function Home() {
             placeholder="Your Nickname"
             value={nickname}
             onChange={(e) => setNickname(e.target.value)}
-            className="input"
+            className="w-full max-w-md px-4 py-3 rounded-lg border border-gray-600 bg-[#1a1a2e] text-white focus:outline-none focus:ring-2 focus:ring-[#667eea]"
           />
-          {error && <p className="error-message">{error}</p>}
-          <div className="form-buttons">
-            <button type="submit" className="btn btn-primary">Join</button>
-            <button type="button" className="btn btn-secondary" onClick={() => { setShowJoinForm(false); setError(''); }}>Cancel</button>
+          {error && <p className="text-[#ff6b6b]">{error}</p>}
+          <div className="flex gap-4">
+            <button type="submit" className="text-xl font-semibold py-4 px-10 rounded-lg border-none cursor-pointer transition-transform hover:-translate-y-0.5 hover:shadow-lg min-w-[200px] bg-[#667eea] text-white">Join</button>
+            <button type="button" className="text-xl font-semibold py-4 px-10 rounded-lg border-none cursor-pointer transition-transform hover:-translate-y-0.5 hover:shadow-lg min-w-[200px] bg-[#ff6b6b] text-white" onClick={() => { setShowJoinForm(false); setError(''); }}>Cancel</button>
           </div>
         </form>
       )}
       
       <button 
-        className="dev-button" 
+        className="fixed bottom-2.5 left-2.5 opacity-30 text-xs text-gray-600 z-50 bg-none border-none cursor-pointer"
         onClick={handleDevClick}
-        style={{ position: 'fixed', bottom: '10px', left: '10px', opacity: 0.3, fontSize: '10px', color: '#666', zIndex: 9999, background: 'none', border: 'none', cursor: 'pointer' }}
       >
         DEV
       </button>
       
       {showDevModal && (
-        <div className="dev-modal" style={{ position: 'fixed', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', backgroundColor: '#1a1a1a', padding: '2rem', borderRadius: '8px', zIndex: 10000, minWidth: '400px', maxHeight: '80vh', overflow: 'auto' }}>
-          <h2 style={{ color: '#ffffff', marginBottom: '1rem' }}>Dev Tools</h2>
-          <h3 style={{ color: '#a0a0a0', marginBottom: '0.5rem' }}>Active Rooms ({activeRooms.length})</h3>
-          <div style={{ marginBottom: '1rem', maxHeight: '200px', overflow: 'auto' }}>
+        <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-[#1a1a1a] p-8 rounded-lg z-[10001] min-w-[400px] max-h-[80vh] overflow-auto">
+          <h2 className="text-white mb-4">Dev Tools</h2>
+          <h3 className="text-gray-400 mb-2">Active Rooms ({activeRooms.length})</h3>
+          <div className="mb-4 max-h-[200px] overflow-auto">
             {activeRooms.length === 0 ? (
-              <p style={{ color: '#666' }}>No active rooms</p>
+              <p className="text-gray-600">No active rooms</p>
             ) : (
-              <ul style={{ color: '#a0a0a0', listStyle: 'none', padding: 0 }}>
+              <ul className="text-gray-400 list-none p-0">
                 {activeRooms.map(room => (
-                  <li key={room.code} style={{ marginBottom: '0.5rem', padding: '0.5rem', backgroundColor: '#2a2a2a', borderRadius: '4px' }}>
+                  <li key={room.code} className="mb-2 p-2 bg-[#2a2a2a] rounded">
                     <strong>Code:</strong> {room.code} | <strong>Status:</strong> {room.status}
                   </li>
                 ))}
@@ -248,14 +246,13 @@ function Home() {
             )}
           </div>
           <button 
-            className="btn btn-primary" 
+            className="text-xl font-semibold py-4 px-10 rounded-lg border-none cursor-pointer transition-transform hover:-translate-y-0.5 hover:shadow-lg min-w-[200px] bg-[#ff4444] text-white mr-2"
             onClick={killAllRooms}
-            style={{ backgroundColor: '#ff4444', marginRight: '0.5rem' }}
           >
             Kill All Rooms
           </button>
           <button 
-            className="btn btn-secondary" 
+            className="text-xl font-semibold py-4 px-10 rounded-lg border-none cursor-pointer transition-transform hover:-translate-y-0.5 hover:shadow-lg min-w-[200px] bg-[#ff6b6b] text-white"
             onClick={() => setShowDevModal(false)}
           >
             Close
@@ -265,9 +262,8 @@ function Home() {
       
       {showDevModal && (
         <div 
-          className="dev-modal-overlay"
+          className="fixed top-0 left-0 right-0 bottom-0 bg-black/70 z-[10000]"
           onClick={() => setShowDevModal(false)}
-          style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0, 0, 0, 0.7)', zIndex: 9999 }}
         />
       )}
     </div>

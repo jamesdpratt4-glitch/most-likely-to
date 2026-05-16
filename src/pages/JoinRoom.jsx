@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { assignRandomEmoji } from '../lib/emojis'
-import '../App.css'
 
 function JoinRoom() {
   const { roomCode } = useParams()
@@ -93,22 +92,24 @@ function JoinRoom() {
   }
 
   return (
-    <div className="home">
-      <div className="version">v1.0.92</div>
-      <h1 className="title">Most Likely To</h1>
-      <div className="join-form">
-        <h2>Join Room</h2>
-        <div className="form-group">
-          <label>Room Code</label>
+    <div className="min-h-screen flex flex-col items-center justify-center bg-[#0f0f0f] text-white p-5">
+      <div className="fixed top-2.5 left-1/2 -translate-x-1/2 opacity-70 text-base text-black z-50 font-bold bg-white/90 px-3 py-1 rounded shadow">
+        v1.0.93
+      </div>
+      <h1 className="text-6xl font-bold mb-8 text-[#667eea]">Most Likely To</h1>
+      <div className="flex flex-col items-center gap-4 w-full max-w-md">
+        <h2 className="text-2xl font-medium">Join Room</h2>
+        <div className="w-full">
+          <label className="block mb-2 text-gray-400">Room Code</label>
           <input
             type="text"
             value={roomCode?.toUpperCase() || ''}
             readOnly
-            className="readonly-input"
+            className="w-full px-4 py-3 rounded-lg border border-gray-600 bg-[#1a1a2e] text-white"
           />
         </div>
-        <div className="form-group">
-          <label>Your Nickname</label>
+        <div className="w-full">
+          <label className="block mb-2 text-gray-400">Your Nickname</label>
           <input
             type="text"
             value={nickname}
@@ -116,19 +117,20 @@ function JoinRoom() {
             placeholder="Enter your nickname"
             maxLength={20}
             autoFocus
+            className="w-full px-4 py-3 rounded-lg border border-gray-600 bg-[#1a1a2e] text-white focus:outline-none focus:ring-2 focus:ring-[#667eea]"
           />
         </div>
-        {error && <div className="error">{error}</div>}
+        {error && <div className="text-[#ff6b6b]">{error}</div>}
         <button 
           onClick={handleJoin} 
-          className="btn btn-primary"
+          className="text-xl font-semibold py-4 px-10 rounded-lg border-none cursor-pointer transition-transform hover:-translate-y-0.5 hover:shadow-lg min-w-[200px] bg-[#667eea] text-white"
           disabled={loading}
         >
           {loading ? 'Joining...' : 'Join Room'}
         </button>
         <button 
           onClick={() => navigate('/')} 
-          className="btn btn-secondary"
+          className="text-xl font-semibold py-4 px-10 rounded-lg border-none cursor-pointer transition-transform hover:-translate-y-0.5 hover:shadow-lg min-w-[200px] bg-[#ff6b6b] text-white"
           disabled={loading}
         >
           Back to Home
