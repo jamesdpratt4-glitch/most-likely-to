@@ -1,11 +1,11 @@
 import { useState, useEffect } from 'react'
-import { useParams, useSearchParams } from 'react-router-dom'
+import { useParams, useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 
 function Game() {
   const { code } = useParams()
-  const [searchParams] = useSearchParams()
-  const isHost = searchParams.get('host') === 'true'
+  const navigate = useNavigate()
+  const isHost = localStorage.getItem('isHost') === 'true' && localStorage.getItem('roomCode') === code
   
   const [room, setRoom] = useState(null)
   const [players, setPlayers] = useState([])
@@ -290,6 +290,7 @@ function Game() {
   }
 
   const otherPlayers = players.filter(p => p.nickname !== myNickname)
+  const votingPlayers = isHost ? players : otherPlayers
 
   return (
     <div className="game">
@@ -302,7 +303,7 @@ function Game() {
       <div className="players-section">
         <h3>Vote for:</h3>
         <div className="vote-buttons">
-          {otherPlayers.map(player => (
+          {votingPlayers.map(player => (
             <button
               key={player.nickname}
               className={`btn vote-btn ${hasVoted ? 'disabled' : ''}`}

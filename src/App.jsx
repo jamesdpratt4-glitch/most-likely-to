@@ -9,8 +9,10 @@ import './App.css'
 function Home() {
   const navigate = useNavigate()
   const [showJoinForm, setShowJoinForm] = useState(false)
+  const [showCreateForm, setShowCreateForm] = useState(false)
   const [roomCode, setRoomCode] = useState('')
   const [nickname, setNickname] = useState('')
+  const [hostNickname, setHostNickname] = useState('')
   const [error, setError] = useState('')
 
   const generateRoomCode = () => {
@@ -18,17 +20,45 @@ function Home() {
   }
 
   const handleCreateRoom = async () => {
+    if (!hostNickname.trim()) {
+      setError('Please enter a nickname')
+      return
+    }
+
     const code = generateRoomCode()
     
-    const { error } = await supabase
+    const { error: roomError } = await supabase
       .from('rooms')
       .insert({ code, status: 'waiting' })
     
-    if (!error) {
-      navigate(`/host/${code}`)
-    } else {
-      console.error('Error creating room:', error)
+    if (roomError) {
+      console.error('Error creating room:', roomError)
+      setError('Failed to create room. Please try again.')
+      return
     }
+
+    // Insert host into players table
+    const { error: playerError } = await supabase
+      .from('players')
+      .insert({
+        room_code: code,
+        nickname: hostNickname,
+        drink_count: 0,
+        last_seen: new Date().toISOString()
+      })
+
+    if (playerError) {
+      console.error('Error adding host to players:', playerError)
+      setError('Failed to join room. Please try again.')
+      return
+    }
+
+    // Store host info in localStorage
+    localStorage.setItem('nickname', hostNickname)
+    localStorage.setItem('roomCode', code)
+    localStorage.setItem('isHost', 'true')
+
+    navigate(`/host/${code}`)
   }
 
   const handleJoinRoom = async (e) => {
@@ -75,11 +105,26 @@ function Home() {
       <h1 className="title">Most Likely To</h1>
       <p className="subtitle">A multiplayer party game</p>
       
-      {!showJoinForm ? (
+      {!showJoinForm && !showCreateForm ? (
         <div className="buttons">
-          <button className="btn btn-primary" onClick={handleCreateRoom}>Create Room</button>
+          <button className="btn btn-primary" onClick={() => setShowCreateForm(true)}>Create Room</button>
           <button className="btn btn-secondary" onClick={() => setShowJoinForm(true)}>Join Room</button>
         </div>
+      ) : showCreateForm ? (
+        <form className="join-form" onSubmit={(e) => { e.preventDefault(); handleCreateRoom(); }}>
+          <input
+            type="text"
+            placeholder="Your Nickname"
+            value={hostNickname}
+            onChange={(e) => setHostNickname(e.target.value)}
+            className="input-field"
+          />
+          {error && <p className="error-message">{error}</p>}
+          <div className="buttons">
+            <button type="submit" className="btn btn-primary">Create</button>
+            <button type="button" className="btn btn-secondary" onClick={() => { setShowCreateForm(false); setError(''); }}>Cancel</button>
+          </div>
+        </form>
       ) : (
         <form className="join-form" onSubmit={handleJoinRoom}>
           <input
@@ -100,7 +145,7 @@ function Home() {
           {error && <p className="error-message">{error}</p>}
           <div className="buttons">
             <button type="submit" className="btn btn-primary">Join</button>
-            <button type="button" className="btn btn-secondary" onClick={() => setShowJoinForm(false)}>Cancel</button>
+            <button type="button" className="btn btn-secondary" onClick={() => { setShowJoinForm(false); setError(''); }}>Cancel</button>
           </div>
         </form>
       )}

@@ -9,6 +9,15 @@ function HostLobby() {
   const [players, setPlayers] = useState([])
 
   useEffect(() => {
+    // Verify this user is the host
+    const isHost = localStorage.getItem('isHost') === 'true'
+    const storedRoomCode = localStorage.getItem('roomCode')
+    
+    if (!isHost || storedRoomCode !== code) {
+      navigate('/')
+      return
+    }
+
     // Fetch initial players
     fetchPlayers()
 
@@ -32,7 +41,7 @@ function HostLobby() {
     return () => {
       supabase.removeChannel(channel)
     }
-  }, [code])
+  }, [code, navigate])
 
   const fetchPlayers = async () => {
     const { data, error } = await supabase
