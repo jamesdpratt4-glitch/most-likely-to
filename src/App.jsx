@@ -6,7 +6,7 @@ import PlayerLobby from './pages/PlayerLobby'
 import Game from './pages/Game'
 import './App.css'
 
-const APP_VERSION = "1.0.7"
+const APP_VERSION = "1.0.8"
 
 function Home() {
   const navigate = useNavigate()
@@ -77,6 +77,18 @@ function Home() {
 
     if (roomError || !room) {
       setError('Invalid room code or room is not accepting players')
+      return
+    }
+
+    // Check if nickname already exists in the room
+    const { data: existingPlayers } = await supabase
+      .from('players')
+      .select('nickname')
+      .eq('room_code', roomCode)
+      .eq('nickname', nickname)
+
+    if (existingPlayers && existingPlayers.length > 0) {
+      setError('This nickname is already taken. Please choose another.')
       return
     }
 
