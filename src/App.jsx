@@ -35,7 +35,7 @@ function Home() {
     
     const { error: roomError } = await supabase
       .from('rooms')
-      .insert({ code, status: 'waiting' })
+      .insert({ code, status: 'waiting', host: hostNickname.trim() })
     
     if (roomError) {
       console.error('Error creating room:', roomError)

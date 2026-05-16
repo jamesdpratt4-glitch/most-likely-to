@@ -5,7 +5,8 @@ import { supabase } from '../lib/supabase'
 function Game() {
   const { code } = useParams()
   const navigate = useNavigate()
-  const isHost = localStorage.getItem('isHost') === 'true' && localStorage.getItem('roomCode')?.toLowerCase() === code.toLowerCase()
+  const myNickname = localStorage.getItem('nickname')
+  const [isHost, setIsHost] = useState(false)
   
   const [room, setRoom] = useState(null)
   const [players, setPlayers] = useState([])
@@ -20,10 +21,7 @@ function Game() {
   const [winners, setWinners] = useState([])
   const [isEndingVoting, setIsEndingVoting] = useState(false)
   const [showDetailedVotes, setShowDetailedVotes] = useState(false)
-  const [isRevealing, setIsRevealing] = useState(false)
   const processedRoundRef = useRef(null)
-  
-  const myNickname = localStorage.getItem('nickname')
 
   useEffect(() => {
     // Verify user has required localStorage data
@@ -292,16 +290,6 @@ function Game() {
     }
   }, [votes, players, showResults, roundNumber, isEndingVoting])
 
-  useEffect(() => {
-    if (isRevealing) {
-      const timer = setTimeout(() => {
-        setIsRevealing(false)
-        setShowResults(true)
-      }, 3000)
-      return () => clearTimeout(timer)
-    }
-  }, [isRevealing])
-
   const fetchRoom = async () => {
     const { data } = await supabase
       .from('rooms')
@@ -311,6 +299,9 @@ function Game() {
     
     if (data) {
       setRoom(data)
+      // Check if current user is the host based on database
+      setIsHost(data.host === myNickname)
+      
       // Calculate round number from existing votes
       const { data: existingVotes } = await supabase
         .from('votes')
@@ -488,7 +479,8 @@ function Game() {
       setResultsVotes(freshVotes)
     }
     
-    setIsRevealing(true)
+    // Show results directly
+    setShowResults(true)
     
     // Calculate winner(s) using fresh votes
     const voteCounts = {}
@@ -917,30 +909,6 @@ function Game() {
         
         {hasVoted && <p className="mt-4 text-slate-400 font-medium">Vote submitted! Waiting for other players...</p>}
       </div>
-
-      {isRevealing && (
-        <div className="fixed inset-0 bg-slate-950 z-[9999] flex flex-col items-center justify-center overflow-hidden transition-opacity duration-500 ease-in-out">
-          {/* Ripple Rings */}
-          <div className="relative w-32 h-32">
-            <div className="w-32 h-32 rounded-full border border-indigo-500/30 absolute animate-ping" style={{ animationDelay: '0ms' }}></div>
-            <div className="w-32 h-32 rounded-full border border-indigo-500/30 absolute animate-ping" style={{ animationDelay: '500ms' }}></div>
-            <div className="w-32 h-32 rounded-full border border-indigo-500/30 absolute animate-ping" style={{ animationDelay: '1000ms' }}></div>
-            
-            {/* Core Center */}
-            <div className="relative z-10 w-16 h-16 bg-indigo-600 rounded-full flex items-center justify-center text-2xl shadow-[0_0_20px_rgba(99,102,241,0.5)] absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
-              🍺
-            </div>
-          </div>
-
-          {/* Typography */}
-          <p className="text-slate-400 uppercase tracking-[0.2em] text-sm animate-pulse mb-1 font-semibold mt-12">
-            Counting the damage...
-          </p>
-          <p className="text-white text-2xl font-bold tracking-wide">
-            The results are in.
-          </p>
-        </div>
-      )}
     </div>
   )
 }

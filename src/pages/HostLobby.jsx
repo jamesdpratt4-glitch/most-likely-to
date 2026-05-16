@@ -12,17 +12,15 @@ function HostLobby() {
 
   useEffect(() => {
     const validateAndLoad = async () => {
-      // Verify this user is the host
-      const isHost = localStorage.getItem('isHost') === 'true'
       const storedRoomCode = localStorage.getItem('roomCode')
       const nickname = localStorage.getItem('nickname')
       
-      if (!isHost || storedRoomCode !== code || !nickname) {
+      if (!storedRoomCode || !nickname) {
         navigate('/')
         return
       }
 
-      // Verify room still exists
+      // Verify room still exists and check if current user is the host
       const { data: room, error: roomError } = await supabase
         .from('rooms')
         .select('*')
@@ -30,6 +28,15 @@ function HostLobby() {
         .single()
 
       if (roomError || !room) {
+        localStorage.removeItem('nickname')
+        localStorage.removeItem('roomCode')
+        localStorage.removeItem('isHost')
+        navigate('/')
+        return
+      }
+
+      // Verify current user is the host based on database
+      if (room.host !== nickname) {
         localStorage.removeItem('nickname')
         localStorage.removeItem('roomCode')
         localStorage.removeItem('isHost')
