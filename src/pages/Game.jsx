@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 
@@ -20,8 +20,15 @@ function Game() {
   const [isEndingVoting, setIsEndingVoting] = useState(false)
   
   const myNickname = localStorage.getItem('nickname')
+  const channelsCreated = useRef(false)
 
   useEffect(() => {
+    // Prevent duplicate channel creation
+    if (channelsCreated.current) {
+      return
+    }
+    channelsCreated.current = true
+
     // Verify user has required localStorage data
     const storedRoomCode = localStorage.getItem('roomCode')
     const nickname = localStorage.getItem('nickname')
@@ -143,6 +150,7 @@ function Game() {
       supabase.removeChannel(roomChannel)
       supabase.removeChannel(playersChannel)
       supabase.removeChannel(votesChannel)
+      channelsCreated.current = false
     }
   }, [code, isHost, navigate])
 
