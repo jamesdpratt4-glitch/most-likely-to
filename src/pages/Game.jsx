@@ -747,6 +747,7 @@ function Game() {
             const percentage = activePlayers.length > 0 ? (count / activePlayers.length) * 100 : 0
             const isWinner = winners.includes(player.nickname)
             const isRemoved = removedPlayers.includes(player.nickname)
+            const votersForPlayer = resultsVotes.filter(v => v.voted_for === player.nickname)
             
             return (
               <div key={player.nickname} className={`vote-bar ${isWinner ? 'winner' : ''} ${isRemoved ? 'removed' : ''}`}>
@@ -761,6 +762,11 @@ function Game() {
                   className="vote-bar-fill" 
                   style={{ width: `${percentage}%` }}
                 />
+                {showDetailedVotes && votersForPlayer.length > 0 && (
+                  <div style={{ marginTop: '0.5rem', fontSize: '0.85rem', color: '#a0a0a0' }}>
+                    Voted by: {votersForPlayer.map(v => v.voter_nickname).join(', ')}
+                  </div>
+                )}
               </div>
             )
           })}
@@ -803,19 +809,6 @@ function Game() {
             >
               End Game
             </button>
-          </div>
-        )}
-        
-        {showDetailedVotes && (
-          <div className="detailed-votes" style={{ marginTop: '2rem', background: '#1f1f1f', padding: '1.5rem', borderRadius: '12px', border: '2px solid #333' }}>
-            <h3 style={{ marginBottom: '1rem', color: '#ff6b6b' }}>Who voted for who:</h3>
-            {resultsVotes.map(vote => (
-              <div key={vote.id} style={{ padding: '0.5rem', borderBottom: '1px solid #333' }}>
-                <span style={{ color: '#a0a0a0' }}>{vote.voter_nickname}</span>
-                <span style={{ margin: '0 0.5rem', color: '#666' }}>→</span>
-                <span style={{ color: '#ffffff', fontWeight: 600 }}>{vote.voted_for}</span>
-              </div>
-            ))}
           </div>
         )}
 
