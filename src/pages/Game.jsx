@@ -170,20 +170,39 @@ function Game() {
   }
 
   const fetchVotes = async () => {
+    console.log("=== FETCH VOTES CALLED ===");
+    console.log("Room code:", code.toLowerCase());
+    console.log("Current roundNumber state:", roundNumber);
+    
+    // Fetch ALL votes for this room to determine the actual current round
+    const { data: allVotes } = await supabase
+      .from('votes')
+      .select('round_number')
+      .eq('room_code', code.toLowerCase())
+    
+    let actualRound = roundNumber
+    if (allVotes && allVotes.length > 0) {
+      const maxRound = Math.max(...allVotes.map(v => v.round_number))
+      actualRound = maxRound
+      console.log("Detected actual round from votes:", actualRound);
+    }
+    
     const { data } = await supabase
       .from('votes')
       .select('*')
       .eq('room_code', code.toLowerCase())
-      .eq('round_number', roundNumber)
+      .eq('round_number', actualRound)
     
-    console.log("=== FETCH VOTES CALLED ===");
-    console.log("Room code:", code.toLowerCase());
-    console.log("Round number:", roundNumber);
+    console.log("Fetching votes for round:", actualRound);
     console.log("Votes fetched:", data);
     console.log("Votes count:", data?.length);
     
     if (data) {
       setVotes(data)
+      // Update roundNumber if we detected a newer round
+      if (actualRound > roundNumber) {
+        setRoundNumber(actualRound)
+      }
       // Check if current player has voted in database
       const myVote = data.find(v => v.voter_nickname === myNickname)
       // Only set hasVoted to true if we find their vote, never reset to false
