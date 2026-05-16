@@ -6,7 +6,7 @@ import PlayerLobby from './pages/PlayerLobby'
 import Game from './pages/Game'
 import './App.css'
 
-const APP_VERSION = "1.0.28"
+const APP_VERSION = "1.0.29"
 
 function Home() {
   const navigate = useNavigate()

@@ -91,7 +91,8 @@ function HostLobby() {
       .from('rooms')
       .update({
         status: 'playing',
-        current_question: randomQuestion
+        current_question: randomQuestion,
+        round_number: 1
       })
       .eq('code', code)
     

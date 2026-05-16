@@ -84,6 +84,10 @@ function Game() {
         },
         (payload) => {
           setRoom(payload.new)
+          // Sync round number from database
+          if (payload.new.round_number !== undefined) {
+            setRoundNumber(payload.new.round_number)
+          }
           // If room status changes to 'waiting', redirect to lobby
           if (payload.new.status === 'waiting') {
             window.location.href = isHost ? `/host/${code}` : `/lobby/${code}`
@@ -97,7 +101,6 @@ function Game() {
             setResultsVotes([])
             setWinner(null)
             setWinners([])
-            setRoundNumber(prev => prev + 1)
             setIsEndingVoting(false)
           }
         }
@@ -316,17 +319,14 @@ function Game() {
     console.log("Is Host:", isHost);
     console.log("Target Player Voted For:", votedFor);
 
-    // Fetch the maximum round number from existing votes for this room
-    const { data: existingVotes } = await supabase
-      .from('votes')
+    // Fetch current round number from database
+    const { data: roomData } = await supabase
+      .from('rooms')
       .select('round_number')
-      .eq('room_code', code.toLowerCase())
+      .eq('code', code.toLowerCase())
+      .single()
 
-    // Determine current round from existing votes or local state
-    const maxRound = existingVotes && existingVotes.length > 0 
-      ? Math.max(...existingVotes.map(v => v.round_number))
-      : 0
-    const currentRound = Math.max(roundNumber, maxRound)
+    const currentRound = roomData?.round_number || roundNumber
 
     const voteData = {
       room_code: code.toLowerCase(),
@@ -336,8 +336,7 @@ function Game() {
     }
     
     console.log("Vote data to insert:", voteData);
-    console.log("Calculated round from votes:", currentRound);
-    console.log("Existing votes max round:", maxRound);
+    console.log("Round from database:", currentRound);
 
     console.log("Attempting to insert vote:", voteData);
     const { data, error } = await supabase
@@ -440,7 +439,8 @@ function Game() {
     await supabase
       .from('rooms')
       .update({
-        current_question: randomQuestion
+        current_question: randomQuestion,
+        round_number: newRoundNumber
       })
       .eq('code', code.toLowerCase())
     
