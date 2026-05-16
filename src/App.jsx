@@ -6,7 +6,7 @@ import PlayerLobby from './pages/PlayerLobby'
 import Game from './pages/Game'
 import './App.css'
 
-const APP_VERSION = "1.0.29"
+const APP_VERSION = "1.0.30"
 
 function Home() {
   const navigate = useNavigate()
@@ -155,6 +155,9 @@ function Home() {
 
   return (
     <div className="app">
+      <div className="version-number" style={{ position: 'fixed', top: '10px', left: '50%', transform: 'translateX(-50%)', opacity: 0.7, fontSize: '16px', color: '#000000', zIndex: 9999, fontWeight: 'bold', backgroundColor: 'rgba(255,255,255,0.9)', padding: '4px 12px', borderRadius: '4px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
+        v{APP_VERSION}
+      </div>
       <h1 className="title">Most Likely To</h1>
       <p className="subtitle">A multiplayer party game</p>
       
@@ -170,42 +173,39 @@ function Home() {
             placeholder="Your Nickname"
             value={hostNickname}
             onChange={(e) => setHostNickname(e.target.value)}
-            className="input-field"
+            className="input"
           />
           {error && <p className="error-message">{error}</p>}
-          <div className="buttons">
+          <div className="form-buttons">
             <button type="submit" className="btn btn-primary">Create</button>
             <button type="button" className="btn btn-secondary" onClick={() => { setShowCreateForm(false); setError(''); }}>Cancel</button>
           </div>
         </form>
       ) : (
-        <form className="join-form" onSubmit={handleJoinRoom}>
+        <form className="form" onSubmit={handleJoinRoom}>
+          <h2>Join Room</h2>
           <input
             type="text"
             placeholder="Room Code"
             value={roomCode}
             onChange={(e) => setRoomCode(e.target.value)}
-            className="input-field"
+            className="input"
             maxLength={4}
           />
           <input
             type="text"
-            placeholder="Nickname"
+            placeholder="Your Nickname"
             value={nickname}
             onChange={(e) => setNickname(e.target.value)}
-            className="input-field"
+            className="input"
           />
           {error && <p className="error-message">{error}</p>}
-          <div className="buttons">
+          <div className="form-buttons">
             <button type="submit" className="btn btn-primary">Join</button>
             <button type="button" className="btn btn-secondary" onClick={() => { setShowJoinForm(false); setError(''); }}>Cancel</button>
           </div>
         </form>
       )}
-      
-      <div className="version-number" style={{ position: 'fixed', bottom: '10px', right: '10px', opacity: 0.6, fontSize: '14px', color: '#000000', zIndex: 9999, fontWeight: 'bold' }}>
-        v{APP_VERSION}
-      </div>
       
       <button 
         className="dev-button" 
