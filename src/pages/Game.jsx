@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
+import { questions } from '../data/questions'
 
 function Game() {
   const { code } = useParams()
@@ -316,14 +317,27 @@ function Game() {
     console.log("Is Host:", isHost);
     console.log("Target Player Voted For:", votedFor);
 
+    // Fetch current room state to get the correct round number
+    const { data: roomData } = await supabase
+      .from('rooms')
+      .select('current_question')
+      .eq('code', code.toLowerCase())
+      .single()
+
+    // Calculate round number from current question index
+    const currentRound = roomData?.current_question ? 
+      questions.indexOf(roomData.current_question) + 1 : 
+      roundNumber
+
     const voteData = {
       room_code: code.toLowerCase(),
-      round_number: roundNumber,
+      round_number: currentRound,
       voter_nickname: myNickname,
       voted_for: votedFor
     }
     
     console.log("Vote data to insert:", voteData);
+    console.log("Calculated round from DB:", currentRound);
 
     console.log("Attempting to insert vote:", voteData);
     const { data, error } = await supabase
