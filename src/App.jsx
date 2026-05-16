@@ -152,7 +152,7 @@ function Home() {
         </form>
       )}
       
-      <div className="version-number" style={{ position: 'fixed', bottom: '10px', right: '10px', opacity: 0.3, fontSize: '12px', color: '#888', zIndex: 9999 }}>
+      <div className="version-number" style={{ position: 'fixed', bottom: '10px', right: '10px', opacity: 0.6, fontSize: '14px', color: '#ffffff', zIndex: 9999, fontWeight: 'bold' }}>
         v{APP_VERSION}
       </div>
     </div>
