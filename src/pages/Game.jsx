@@ -109,6 +109,7 @@ function Game() {
             setShowSummary(payload.new.show_summary || false)
             if (payload.new.show_summary) {
               setShowResults(false)
+              fetchPlayers() // Refresh players data to get latest drink counts
             }
           }
           // If room status changes to 'waiting', redirect to lobby
