@@ -127,8 +127,13 @@ function Game() {
           // This prevents resetting showResults when other room fields are updated
           const questionChanged = payload.old.current_question !== payload.new.current_question
           const roundIncreased = payload.new.round_number > (payload.old.round_number || 0)
-          console.log("=== ROOM UPDATE CHECK ===", { questionChanged, roundIncreased, oldQuestion: payload.old.current_question, newQuestion: payload.new.current_question, oldRound: payload.old.round_number, newRound: payload.new.round_number })
-          if (questionChanged && roundIncreased) {
+          const showSummaryChanged = payload.old.show_summary !== payload.new.show_summary
+          const showSummaryBeingSetToFalse = payload.new.show_summary === false
+          console.log("=== ROOM UPDATE CHECK ===", { questionChanged, roundIncreased, showSummaryChanged, showSummaryBeingSetToFalse, oldQuestion: payload.old.current_question, newQuestion: payload.new.current_question, oldRound: payload.old.round_number, newRound: payload.new.round_number })
+          // Only reset if question changed and round increased
+          // Exception: if ONLY show_summary changed to true (showing summary), don't reset
+          // But if show_summary is being set to false (continuing from summary), do reset
+          if (questionChanged && roundIncreased && (!showSummaryChanged || showSummaryBeingSetToFalse)) {
             console.log("=== RESETTING VOTING STATE FOR NEW ROUND ===")
             setShowResults(false)
             setHasVoted(false)
@@ -509,63 +514,25 @@ function Game() {
     
     console.log("=== ABOUT TO UPDATE DRINK COUNTS ===", { roundWinners, freshVotes })
     
-    // Update all winners' drink count by the number of votes they received
-    console.log("=== CHECKING IF ROUND WINNERS EXIST ===", roundWinners.length > 0)
-    if (roundWinners.length > 0) {
-      console.log("=== ROUND WINNERS FOUND, UPDATING DRINK COUNTS ===")
-      // Get vote counts for this round using freshVotes
-      const voteCounts = {}
-      freshVotes.forEach(vote => {
-        voteCounts[vote.voted_for] = (voteCounts[vote.voted_for] || 0) + 1
-      })
-      console.log("=== VOTE COUNTS FOR DRINK UPDATE ===", voteCounts)
-
-      for (const winnerNickname of roundWinners) {
-        console.log("=== PROCESSING WINNER ===", winnerNickname)
-        // Only host updates drink counts to prevent race conditions
-        if (!isHost) {
-          console.log("=== SKIPPING DRINK UPDATE - NOT HOST ===")
-          continue
-        }
-        
-        const votesReceived = voteCounts[winnerNickname] || 0
-        console.log("=== DRINK COUNT INCREMENT ===", { 
-          winnerNickname, 
-          votesReceived,
-          roundNumber
-        })
-        
-        // Get current drink count and update
-        const { data: playerData } = await supabase
-          .from('players')
-          .select('drink_count')
-          .eq('room_code', code.toLowerCase())
-          .eq('nickname', winnerNickname)
-          .single()
-        
-        if (playerData) {
-          const newDrinkCount = (playerData.drink_count || 0) + votesReceived
-          console.log("=== DRINK COUNT UPDATE ===", { 
-            winnerNickname, 
-            currentCount: playerData.drink_count, 
-            votesReceived, 
-            newCount: newDrinkCount,
-            roundNumber
-          })
-          
-          const { error: updateError } = await supabase
-            .from('players')
-            .update({ drink_count: newDrinkCount })
-            .eq('room_code', code.toLowerCase())
-            .eq('nickname', winnerNickname)
-          
-          console.log("=== DRINK COUNT UPDATE RESULT ===", { error: updateError })
-        }
-      }
-    }
+    // Drink count updates are now handled atomically in handleShowSummary
+    // This ensures they're updated before the summary screen is shown
   }
 
   const handleNextRound = async () => {
+    console.log("=== HANDLE NEXT ROUND - ATOMIC DRINK UPDATE ===", { roomCode: code.toLowerCase(), roundNumber })
+    // Update drink counts before starting next round (if summary wasn't shown)
+    const { error: drinkError } = await supabase.rpc('update_drinks_and_show_summary', {
+      room_code_param: code.toLowerCase(),
+      round_number_param: roundNumber,
+      show_summary_param: false
+    })
+    
+    if (drinkError) {
+      console.error("=== ERROR UPDATING DRINK COUNTS ===", drinkError)
+    } else {
+      console.log("=== SUCCESS: DRINK COUNTS UPDATED (NO SUMMARY) ===")
+    }
+
     const { questions } = await import('../data/questions')
     const randomQuestion = questions[Math.floor(Math.random() * questions.length)]
     
@@ -577,7 +544,8 @@ function Game() {
       .update({
         current_question: randomQuestion,
         round_number: newRoundNumber,
-        round_end_time: roundEndTime
+        round_end_time: roundEndTime,
+        show_summary: false // Reset show_summary for next round
       })
       .eq('code', code.toLowerCase())
     
@@ -595,10 +563,19 @@ function Game() {
   }
 
   const handleShowSummary = async () => {
-    await supabase
-      .from('rooms')
-      .update({ show_summary: true })
-      .eq('code', code.toLowerCase())
+    console.log("=== HANDLE SHOW SUMMARY - ATOMIC DRINK UPDATE ===", { roomCode: code.toLowerCase(), roundNumber })
+    // Call database function to atomically update drink counts and show summary
+    const { error } = await supabase.rpc('update_drinks_and_show_summary', {
+      room_code_param: code.toLowerCase(),
+      round_number_param: roundNumber,
+      show_summary_param: true
+    })
+    
+    if (error) {
+      console.error("=== ERROR UPDATING DRINKS AND SHOWING SUMMARY ===", error)
+    } else {
+      console.log("=== SUCCESS: DRINK COUNTS UPDATED AND SUMMARY SHOWN ===")
+    }
   }
 
   const handleContinueFromSummary = async () => {
