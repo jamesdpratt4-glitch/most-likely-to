@@ -562,6 +562,17 @@ function Game() {
             </button>
           </div>
         )}
+
+        {isHost && (
+          <div className="players-section" style={{ marginTop: '2rem' }}>
+            <h3>Players ({players.length})</h3>
+            <ul className="players-list">
+              {players.map((player, index) => (
+                <li key={index} className="player-item">{player.nickname}</li>
+              ))}
+            </ul>
+          </div>
+        )}
       </div>
     )
   }
