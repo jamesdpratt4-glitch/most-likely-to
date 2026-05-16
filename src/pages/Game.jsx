@@ -472,17 +472,18 @@ function Game() {
     setWinner(roundWinners.length === 1 ? roundWinners[0] : null)
     setWinners(roundWinners)
     
-    console.log("=== ABOUT TO UPDATE DRINK COUNTS ===", { roundWinners, resultsVotes })
+    console.log("=== ABOUT TO UPDATE DRINK COUNTS ===", { roundWinners, freshVotes })
     
     // Update all winners' drink count by the number of votes they received
     console.log("=== CHECKING IF ROUND WINNERS EXIST ===", roundWinners.length > 0)
     if (roundWinners.length > 0) {
       console.log("=== ROUND WINNERS FOUND, UPDATING DRINK COUNTS ===")
-      // Get vote counts for this round
+      // Get vote counts for this round using freshVotes
       const voteCounts = {}
-      resultsVotes.forEach(vote => {
+      freshVotes.forEach(vote => {
         voteCounts[vote.voted_for] = (voteCounts[vote.voted_for] || 0) + 1
       })
+      console.log("=== VOTE COUNTS FOR DRINK UPDATE ===", voteCounts)
 
       for (const winnerNickname of roundWinners) {
         console.log("=== PROCESSING WINNER ===", winnerNickname)
