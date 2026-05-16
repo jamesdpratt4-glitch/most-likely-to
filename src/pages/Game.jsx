@@ -443,8 +443,14 @@ function Game() {
     setWinner(roundWinners.length === 1 ? roundWinners[0] : null)
     setWinners(roundWinners)
     
-    // Update all winners' drink count
+    // Update all winners' drink count by the number of votes they received
     if (roundWinners.length > 0) {
+      // Get vote counts for this round
+      const voteCounts = {}
+      resultsVotes.forEach(vote => {
+        voteCounts[vote.voted_for] = (voteCounts[vote.voted_for] || 0) + 1
+      })
+
       for (const winnerNickname of roundWinners) {
         // First get current drink count
         const { data: playerData } = await supabase
@@ -455,7 +461,8 @@ function Game() {
           .single()
         
         if (playerData) {
-          const newDrinkCount = (playerData.drink_count || 0) + 1
+          const votesReceived = voteCounts[winnerNickname] || 0
+          const newDrinkCount = (playerData.drink_count || 0) + votesReceived
           await supabase
             .from('players')
             .update({ drink_count: newDrinkCount })
@@ -619,6 +626,12 @@ function Game() {
             >
               End Game
             </button>
+          </div>
+        )}
+
+        {!isHost && (
+          <div style={{ marginTop: '2rem', color: '#a0a0a0', fontSize: '0.9rem' }}>
+            Waiting for host to start next round...
           </div>
         )}
       </div>
