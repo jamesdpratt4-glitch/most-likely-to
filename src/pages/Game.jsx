@@ -164,6 +164,26 @@ function Game() {
   }, [room, showResults])
 
   useEffect(() => {
+    // Fetch fresh votes when results are shown (for non-host players)
+    if (showResults) {
+      const fetchResultsVotes = async () => {
+        console.log("=== FETCHING RESULTS VOTES FOR DISPLAY ===");
+        const { data: freshVotes } = await supabase
+          .from('votes')
+          .select('*')
+          .eq('room_code', code.toLowerCase())
+          .eq('round_number', roundNumber)
+        
+        console.log("Results votes from DB:", freshVotes);
+        if (freshVotes) {
+          setResultsVotes(freshVotes)
+        }
+      }
+      fetchResultsVotes()
+    }
+  }, [showResults, roundNumber, code])
+
+  useEffect(() => {
     // Check if all players have voted
     console.log("=== VOTE COMPLETION CHECK ===");
     console.log("Total players in room:", players.length);
