@@ -289,6 +289,21 @@ function Game() {
       if (myVote && !hasVoted) {
         setHasVoted(true)
       }
+
+      // Check if all players have voted and trigger results if so
+      const { data: allPlayers } = await supabase
+        .from('players')
+        .select('nickname')
+        .eq('room_code', code.toLowerCase())
+      
+      if (allPlayers) {
+        const uniqueVoters = new Set(data.map(v => v.voter_nickname))
+        if (uniqueVoters.size >= allPlayers.length && !showResults && !isEndingVoting) {
+          console.log("✅ All players have voted in fetchVotes! Ending voting period.")
+          setIsEndingVoting(true)
+          endVoting()
+        }
+      }
     }
   }
 
@@ -334,39 +349,6 @@ function Game() {
       setHasVoted(false) // Re-enable button if error occurs
       return
     }
-
-    // After successful vote, manually check if all players have voted
-    console.log("=== MANUAL VOTE COMPLETION CHECK AFTER VOTE ===");
-    
-    // Small delay to ensure vote is in database
-    setTimeout(async () => {
-      // Query database directly instead of relying on local state
-      const { data: allPlayers } = await supabase
-        .from('players')
-        .select('nickname')
-        .eq('room_code', code.toLowerCase())
-      
-      const { data: allVotes } = await supabase
-        .from('votes')
-        .select('voter_nickname')
-        .eq('room_code', code.toLowerCase())
-        .eq('round_number', roundNumber)
-      
-      if (allPlayers && allVotes) {
-        const uniqueVoters = new Set(allVotes.map(v => v.voter_nickname))
-        console.log("Players count:", allPlayers.length);
-        console.log("Unique voters count:", uniqueVoters.size);
-        console.log("Votes from DB:", allVotes);
-        
-        if (allPlayers.length > 0 && uniqueVoters.size >= allPlayers.length && !showResults && !isEndingVoting) {
-          console.log("✅ MANUAL CHECK: All players have voted! Ending voting period.");
-          setIsEndingVoting(true)
-          endVoting()
-        } else {
-          console.log("❌ MANUAL CHECK: Not all players have voted yet.");
-        }
-      }
-    }, 500)
   }
 
   const endVoting = async () => {
