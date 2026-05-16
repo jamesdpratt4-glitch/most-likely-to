@@ -501,6 +501,29 @@ function Game() {
     navigate('/game-over')
   }
 
+  const handleRemovePlayer = async (playerNickname) => {
+    await supabase
+      .from('players')
+      .delete()
+      .eq('room_code', code.toLowerCase())
+      .eq('nickname', playerNickname)
+    
+    // Check if player count dropped below 2
+    const { data: remainingPlayers } = await supabase
+      .from('players')
+      .select('nickname')
+      .eq('room_code', code.toLowerCase())
+    
+    if (remainingPlayers && remainingPlayers.length < 2) {
+      await supabase
+        .from('rooms')
+        .update({ status: 'ended' })
+        .eq('code', code.toLowerCase())
+      
+      navigate('/game-over')
+    }
+  }
+
   if (!room || room.status === 'waiting') {
     return <div className="game">Loading...</div>
   }
@@ -568,7 +591,16 @@ function Game() {
             <h3>Players ({players.length})</h3>
             <ul className="players-list">
               {players.map((player, index) => (
-                <li key={index} className="player-item">{player.nickname}</li>
+                <li key={index} className="player-item">
+                  <span>{player.nickname}</span>
+                  <button 
+                    className="remove-player-btn"
+                    onClick={() => handleRemovePlayer(player.nickname)}
+                    title="Remove player"
+                  >
+                    ✕
+                  </button>
+                </li>
               ))}
             </ul>
           </div>
