@@ -4,9 +4,5 @@
       "source": "/(.*)",
       "destination": "/index.html"
     }
-  ],
-  "protection": {
-    "enabled": true,
-    "exclude": ["/join/*"]
-  }
+  ]
 }
