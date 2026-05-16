@@ -60,7 +60,7 @@ function PlayerLobby() {
 
       // Subscribe to room changes to detect when game starts
       const roomChannel = supabase
-        .channel(`room:${code}`)
+        .channel(`room:${code}:lobby`)
         .on(
           'postgres_changes',
           {

@@ -73,7 +73,7 @@ function Game() {
 
     // Subscribe to room changes
     const roomChannel = supabase
-      .channel(`room:${code.toLowerCase()}`)
+      .channel(`room:${code.toLowerCase()}:game`)
       .on(
         'postgres_changes',
         {
@@ -106,7 +106,7 @@ function Game() {
 
     // Subscribe to votes changes (critical for voting sync)
     const votesChannel = supabase
-      .channel(`votes:${code.toLowerCase()}`)
+      .channel(`votes:${code.toLowerCase()}:game`)
       .on(
         'postgres_changes',
         {
