@@ -19,6 +19,7 @@ function Game() {
   const [winner, setWinner] = useState(null)
   const [winners, setWinners] = useState([])
   const [isEndingVoting, setIsEndingVoting] = useState(false)
+  const [showDetailedVotes, setShowDetailedVotes] = useState(false)
   const processedRoundRef = useRef(null)
   
   const myNickname = localStorage.getItem('nickname')
@@ -112,6 +113,10 @@ function Game() {
               setShowResults(false)
               fetchPlayers() // Refresh players data to get latest drink counts
             }
+          }
+          // Sync show_detailed_votes state
+          if (payload.new.show_detailed_votes !== payload.old.show_detailed_votes) {
+            setShowDetailedVotes(payload.new.show_detailed_votes || false)
           }
           // If room status changes to 'waiting', redirect to lobby
           if (payload.new.status === 'waiting') {
@@ -280,6 +285,7 @@ function Game() {
     
     if (data) {
       setRoom(data)
+      setShowDetailedVotes(data.show_detailed_votes || false)
       // Calculate round number from existing votes
       const { data: existingVotes } = await supabase
         .from('votes')
@@ -767,7 +773,7 @@ function Game() {
         )}
         
         {isHost && (
-          <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center' }}>
+          <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', flexWrap: 'wrap' }}>
             <button className="btn btn-primary btn-large" onClick={handleNextRound}>
               Next Round
             </button>
@@ -780,11 +786,38 @@ function Game() {
             </button>
             <button 
               className="btn btn-secondary btn-large" 
+              onClick={async () => {
+                const newState = !showDetailedVotes
+                setShowDetailedVotes(newState)
+                await supabase
+                  .from('rooms')
+                  .update({ show_detailed_votes: newState })
+                  .eq('code', code.toLowerCase())
+              }}
+              style={{ backgroundColor: '#ff6b6b' }}
+            >
+              {showDetailedVotes ? 'Hide Votes' : 'Reveal Votes'}
+            </button>
+            <button 
+              className="btn btn-secondary btn-large" 
               onClick={handleEndGame}
               style={{ backgroundColor: '#ff4444' }}
             >
               End Game
             </button>
+          </div>
+        )}
+        
+        {showDetailedVotes && (
+          <div className="detailed-votes" style={{ marginTop: '2rem', background: '#1f1f1f', padding: '1.5rem', borderRadius: '12px', border: '2px solid #333' }}>
+            <h3 style={{ marginBottom: '1rem', color: '#ff6b6b' }}>Who voted for who:</h3>
+            {resultsVotes.map(vote => (
+              <div key={vote.id} style={{ padding: '0.5rem', borderBottom: '1px solid #333' }}>
+                <span style={{ color: '#a0a0a0' }}>{vote.voter_nickname}</span>
+                <span style={{ margin: '0 0.5rem', color: '#666' }}>→</span>
+                <span style={{ color: '#ffffff', fontWeight: 600 }}>{vote.voted_for}</span>
+              </div>
+            ))}
           </div>
         )}
 
