@@ -249,9 +249,11 @@
 }
 
 .question-text {
-  font-size: 1.5rem;
+  font-size: 1.75rem;
   font-weight: 600;
-  line-height: 1.4;
+  line-height: 1.6;
+  color: #ffffff;
+  margin-bottom: 1rem;
 }
 
 .vote-buttons {
