@@ -866,7 +866,7 @@ function Game() {
     )
   }
 
-  const votingPlayers = players
+  const votingPlayers = players.filter(player => player.nickname !== myNickname)
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-slate-950 text-white p-5">
