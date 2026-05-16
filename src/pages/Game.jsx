@@ -103,8 +103,9 @@ function Game() {
         (payload) => {
           console.log("=== ROOM SUBSCRIPTION TRIGGERED ===", payload)
           setRoom(payload.new)
-          // Sync round number from database
-          if (payload.new.round_number !== undefined) {
+          // Always sync round number from database (not just when defined)
+          if (payload.new.round_number !== undefined && payload.new.round_number !== null) {
+            console.log("=== SYNCING ROUND NUMBER ===", { old: roundNumber, new: payload.new.round_number })
             setRoundNumber(payload.new.round_number)
           }
           // Sync show_summary state - check if it changed
