@@ -129,7 +129,8 @@ function Game() {
             table: 'votes',
             filter: `room_code=eq.${code.toLowerCase()}`
           },
-          () => {
+          (payload) => {
+            console.log("=== VOTES SUBSCRIPTION TRIGGERED ===", payload)
             fetchVotes()
           }
         )
