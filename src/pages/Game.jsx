@@ -142,27 +142,26 @@ function Game() {
             setShowDetailedVotes(false) // Reset reveal votes for new round
             processedRoundRef.current = null // Reset processed round for new round
           }
-        }
-      )
-      .subscribe()
+        )
+        .subscribe()
 
-    // Subscribe to votes changes (critical for voting sync)
-    const votesChannel = supabase
-      .channel(`votes:${code.toLowerCase()}:game`)
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'votes',
-          filter: `room_code=eq.${code.toLowerCase()}`
-        },
-        (payload) => {
-          console.log("=== VOTES SUBSCRIPTION TRIGGERED ===", payload)
-          fetchVotes()
-        }
-      )
-      .subscribe()
+      // Subscribe to votes changes (critical for voting sync)
+      const votesChannel = supabase
+        .channel(`votes:${code.toLowerCase()}:game`)
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'votes',
+            filter: `room_code=eq.${code.toLowerCase()}`
+          },
+          (payload) => {
+            console.log("=== VOTES SUBSCRIPTION TRIGGERED ===", payload)
+            fetchVotes()
+          }
+        )
+        .subscribe()
 
     // Subscribe to players changes to sync drink_count updates
     const playersChannel = supabase
@@ -180,6 +179,17 @@ function Game() {
           fetchPlayers()
         }
       )
+      .subscribe()
+
+    // Separate channel for reveal votes sync (broadcast, not database)
+    const revealVotesChannel = supabase
+      .channel(`reveal_votes:${code.toLowerCase()}`)
+      .on('broadcast', { event: 'reveal_votes' }, (payload) => {
+        console.log("=== REVEAL VOTES BROADCAST ===", payload)
+        if (payload.payload.roundNumber === roundNumber) {
+          setShowDetailedVotes(true)
+        }
+      })
       .subscribe()
 
     // Poll players every 3 seconds as backup
@@ -204,6 +214,7 @@ function Game() {
       supabase.removeChannel(roomChannel)
       supabase.removeChannel(votesChannel)
       supabase.removeChannel(playersChannel)
+      supabase.removeChannel(revealVotesChannel)
       clearInterval(playersInterval)
       clearInterval(roomStatusInterval)
     }
@@ -796,7 +807,17 @@ function Game() {
             </button>
             <button 
               className="btn btn-secondary btn-large" 
-              onClick={() => setShowDetailedVotes(true)}
+              onClick={async () => {
+                setShowDetailedVotes(true)
+                // Broadcast reveal votes event to all clients
+                await supabase
+                  .channel(`reveal_votes:${code.toLowerCase()}`)
+                  .send({
+                    type: 'broadcast',
+                    event: 'reveal_votes',
+                    payload: { roundNumber }
+                  })
+              }}
               disabled={showDetailedVotes}
               style={{ backgroundColor: '#ff6b6b' }}
             >
