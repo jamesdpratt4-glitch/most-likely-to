@@ -15,6 +15,7 @@ function Game() {
   const [showResults, setShowResults] = useState(false)
   const [roundNumber, setRoundNumber] = useState(1)
   const [winner, setWinner] = useState(null)
+  const [isEndingVoting, setIsEndingVoting] = useState(false)
   
   const myNickname = localStorage.getItem('nickname')
 
@@ -49,6 +50,7 @@ function Game() {
             setVotes([])
             setWinner(null)
             setRoundNumber(prev => prev + 1)
+            setIsEndingVoting(false)
           }
         }
       )
@@ -120,13 +122,19 @@ function Game() {
     console.log("Votes received this round:", votes.length);
     console.log("Round number:", roundNumber);
     console.log("Show results:", showResults);
-    console.log("Condition check:", players.length > 0 && votes.length >= players.length && !showResults);
+    console.log("Is ending voting:", isEndingVoting);
+    console.log("Condition check:", players.length > 0 && votes.length >= players.length && !showResults && !isEndingVoting);
     
-    if (players.length > 0 && votes.length >= players.length && !showResults) {
+    // Count unique voters to prevent duplicate votes from triggering early
+    const uniqueVoters = new Set(votes.map(v => v.voter_nickname))
+    console.log("Unique voters count:", uniqueVoters.size);
+    
+    if (players.length > 0 && uniqueVoters.size >= players.length && !showResults && !isEndingVoting) {
       console.log("All players have voted! Ending voting period.");
+      setIsEndingVoting(true)
       endVoting()
     }
-  }, [votes, players, showResults, roundNumber])
+  }, [votes, players, showResults, roundNumber, isEndingVoting])
 
   const fetchRoom = async () => {
     const { data } = await supabase
@@ -266,6 +274,7 @@ function Game() {
     setVotes([])
     setWinner(null)
     setRoundNumber(newRoundNumber)
+    setIsEndingVoting(false)
   }
 
   if (!room || room.status === 'waiting') {
