@@ -139,10 +139,28 @@ function Game() {
       fetchPlayers()
     }, 3000)
 
+    // Poll room status every 2 seconds to check for game end (fallback for subscription issues)
+    const roomStatusInterval = setInterval(async () => {
+      const { data: roomData } = await supabase
+        .from('rooms')
+        .select('status')
+        .eq('code', code.toLowerCase())
+        .single()
+      
+      if (roomData?.status === 'ended') {
+        console.log("=== GAME ENDED DETECTED VIA POLLING - REDIRECTING TO HOME ===")
+        localStorage.removeItem('nickname')
+        localStorage.removeItem('roomCode')
+        localStorage.removeItem('isHost')
+        navigate('/')
+      }
+    }, 2000)
+
     return () => {
       supabase.removeChannel(roomChannel)
       supabase.removeChannel(votesChannel)
       clearInterval(playersInterval)
+      clearInterval(roomStatusInterval)
     }
   }, [code, isHost, navigate])
 
