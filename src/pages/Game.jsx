@@ -510,13 +510,13 @@ function Game() {
       .eq('code', code.toLowerCase())
       .single()
     
-    const removedPlayers = room.removed_players || []
+    const removedPlayers = room?.removed_players || []
     if (!removedPlayers.includes(playerNickname)) {
       removedPlayers.push(playerNickname)
       
       await supabase
         .from('rooms')
-        .update({ removed_players })
+        .update({ removed_players: removedPlayers })
         .eq('code', code.toLowerCase())
     }
     
