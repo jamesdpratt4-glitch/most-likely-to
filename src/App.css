@@ -75,20 +75,20 @@
   padding: 20px;
 }
 
-.room-code {
-  font-size: 6rem;
-  font-weight: 800;
-  margin-bottom: 0.5rem;
-  color: #ffffff;
-  letter-spacing: 0.1em;
-}
-
 .room-label {
   font-size: 1.5rem;
   color: #a0a0a0;
-  margin-bottom: 3rem;
+  margin-bottom: 0.5rem;
   text-transform: uppercase;
   letter-spacing: 0.2em;
+}
+
+.room-code {
+  font-size: 6rem;
+  font-weight: 800;
+  margin-bottom: 3rem;
+  color: #ffffff;
+  letter-spacing: 0.1em;
 }
 
 .players-section {

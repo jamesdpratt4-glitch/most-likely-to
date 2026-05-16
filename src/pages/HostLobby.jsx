@@ -72,8 +72,8 @@ function HostLobby() {
 
   return (
     <div className="host-lobby">
-      <h1 className="room-code">{code}</h1>
       <p className="room-label">Room Code</p>
+      <h1 className="room-code">{code}</h1>
       
       <div className="players-section">
         <h2>Players ({players.length})</h2>
