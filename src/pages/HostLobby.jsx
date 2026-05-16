@@ -84,7 +84,19 @@ function HostLobby() {
         </ul>
       </div>
 
-      <button className="btn btn-primary btn-large" onClick={handleStartGame}>Start Game</button>
+      <button 
+        className="btn btn-primary btn-large" 
+        onClick={handleStartGame}
+        disabled={players.length < 2}
+        style={players.length < 2 ? { opacity: 0.5, cursor: 'not-allowed' } : {}}
+      >
+        Start Game
+      </button>
+      {players.length < 2 && (
+        <p style={{ marginTop: '1rem', color: '#a0a0a0', fontSize: '0.9rem' }}>
+          Need at least 2 players to start
+        </p>
+      )}
     </div>
   )
 }
