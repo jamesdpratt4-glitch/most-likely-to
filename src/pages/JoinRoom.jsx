@@ -94,7 +94,7 @@ function JoinRoom() {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-slate-950 text-white p-5">
       <div className="fixed top-4 left-1/2 -translate-x-1/2 z-50 font-semibold text-zinc-500 bg-zinc-900/70 backdrop-blur-md px-4 py-2 rounded-xl border border-slate-800">
-        v1.0.95
+        v1.0.96
       </div>
       <div className="container mx-auto px-4 max-w-2xl text-center">
         <h1 className="text-6xl font-bold mb-8 text-white tracking-tight">Most Likely To</h1>

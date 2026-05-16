@@ -891,19 +891,20 @@ function Game() {
           Players: {players.length} | Votes: {votes.length} | Round: {roundNumber}
         </div>
         
-        <div className="w-full bg-zinc-900/50 p-8 rounded-2xl border border-slate-800 mb-8 shadow-xl">
+        <div key={room.current_question} className="w-full bg-zinc-900/50 p-8 rounded-2xl border border-slate-800 mb-8 shadow-xl animate-fade-in-up">
           <h2 className="text-2xl font-bold text-center text-white">{room.current_question}</h2>
         </div>
         
         <div className="w-full">
           <h3 className="text-xl font-semibold mb-4 text-white">Vote for:</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4" style={hasVoted ? { opacity: 0.5, pointerEvents: 'none' } : {}}>
-            {votingPlayers.map(player => {
+          <div key={roundNumber} className="grid grid-cols-1 md:grid-cols-2 gap-4" style={hasVoted ? { opacity: 0.5, pointerEvents: 'none' } : {}}>
+            {votingPlayers.map((player, index) => {
               const isSelf = player.nickname === myNickname
               return (
                 <button
-                  key={player.nickname}
-                  className={`text-lg font-semibold py-4 px-6 rounded-xl border-none cursor-pointer transition-all duration-300 ease-in-out hover:bg-indigo-600 active:scale-95 shadow-lg ${isSelf ? 'opacity-50 cursor-not-allowed bg-zinc-700 text-slate-400' : 'bg-indigo-500 text-white shadow-indigo-500/20'}`}
+                  key={`${player.nickname}-${roundNumber}`}
+                  className={`text-lg font-semibold py-4 px-6 rounded-xl border-none cursor-pointer transition-all duration-300 ease-in-out hover:bg-indigo-600 active:scale-95 shadow-lg animate-fade-in-up ${isSelf ? 'opacity-50 cursor-not-allowed bg-zinc-700 text-slate-400' : 'bg-indigo-500 text-white shadow-indigo-500/20'}`}
+                  style={{ animationDelay: `${index * 75}ms`, opacity: 0 }}
                   onClick={() => handleVote(player.nickname)}
                   disabled={hasVoted || isSelf}
                 >

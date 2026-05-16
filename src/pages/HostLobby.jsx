@@ -133,8 +133,21 @@ function HostLobby() {
             {qrDataUrl && <img src={qrDataUrl} alt="QR Code" className="w-[200px] h-[200px]" />}
           </div>
         </div>
+
+        <button 
+          className="mb-8 text-lg font-semibold py-4 px-8 rounded-xl border-none cursor-pointer transition-all duration-300 ease-in-out hover:bg-indigo-600 active:scale-95 min-w-[200px] bg-indigo-500 text-white shadow-lg shadow-indigo-500/20 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-indigo-500 disabled:active:scale-100"
+          onClick={handleStartGame}
+          disabled={players.length < 2}
+        >
+          Start Game
+        </button>
+        {players.length < 2 && (
+          <p className="mb-8 text-slate-400 text-sm font-medium">
+            Need at least 2 players to start
+          </p>
+        )}
         
-        <div className="mb-8 w-full max-w-md mx-auto">
+        <div className="w-full max-w-md mx-auto">
           <h2 className="text-2xl font-semibold mb-4 text-white">Players ({players.length})</h2>
           <ul className="list-none p-0 space-y-3">
             {players.map((player, index) => (
@@ -145,19 +158,6 @@ function HostLobby() {
             ))}
           </ul>
         </div>
-
-        <button 
-          className="text-lg font-semibold py-4 px-8 rounded-xl border-none cursor-pointer transition-all duration-300 ease-in-out hover:bg-indigo-600 active:scale-95 min-w-[200px] bg-indigo-500 text-white shadow-lg shadow-indigo-500/20 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-indigo-500 disabled:active:scale-100"
-          onClick={handleStartGame}
-          disabled={players.length < 2}
-        >
-          Start Game
-        </button>
-        {players.length < 2 && (
-          <p className="mt-4 text-slate-400 text-sm font-medium">
-            Need at least 2 players to start
-          </p>
-        )}
       </div>
     </div>
   )
