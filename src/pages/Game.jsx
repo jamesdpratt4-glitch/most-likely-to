@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 
@@ -19,7 +19,7 @@ function Game() {
   const [winner, setWinner] = useState(null)
   const [winners, setWinners] = useState([])
   const [isEndingVoting, setIsEndingVoting] = useState(false)
-  const [processedRound, setProcessedRound] = useState(null)
+  const processedRoundRef = useRef(null)
   
   const myNickname = localStorage.getItem('nickname')
 
@@ -429,12 +429,12 @@ function Game() {
   const endVoting = async () => {
     console.log("=== END VOTING - CALCULATING RESULTS ===");
     
-    // Prevent duplicate processing of the same round
-    if (processedRound === roundNumber) {
-      console.log("=== ROUND ALREADY PROCESSED ===", { processedRound, roundNumber })
+    // Prevent duplicate processing of the same round using ref (synchronous)
+    if (processedRoundRef.current === roundNumber) {
+      console.log("=== ROUND ALREADY PROCESSED ===", { processedRound: processedRoundRef.current, roundNumber })
       return
     }
-    setProcessedRound(roundNumber)
+    processedRoundRef.current = roundNumber
     console.log("=== PROCESSING NEW ROUND ===", roundNumber)
     
     // Fetch fresh votes from database for current round
@@ -546,7 +546,7 @@ function Game() {
       .eq('code', code.toLowerCase())
     
     // Reset state for new round
-    setProcessedRound(null)
+    processedRoundRef.current = null
     setShowResults(false)
     setShowSummary(false)
     setHasVoted(false)
@@ -582,7 +582,7 @@ function Game() {
       .eq('code', code.toLowerCase())
     
     // Reset state for new round
-    setProcessedRound(null)
+    processedRoundRef.current = null
     setShowResults(false)
     setShowSummary(false)
     setHasVoted(false)
