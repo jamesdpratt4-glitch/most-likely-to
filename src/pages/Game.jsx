@@ -215,7 +215,7 @@ function Game() {
           const uniqueVoters = new Set(votes.map(v => v.voter_nickname))
           if (uniqueVoters.size < players.length) {
             console.log("⏰ Timer ended but not all players voted. Ending voting.")
-            endVoting()
+            endVoting(roundNumber)
           } else {
             console.log("⏰ Timer ended but all players already voted. Auto-advance handled it.")
           }
@@ -265,7 +265,7 @@ function Game() {
     if (players.length > 0 && uniqueVoters.size >= players.length && !showResults && !isEndingVoting) {
       console.log("✅ All players have voted! Ending voting period.");
       setIsEndingVoting(true)
-      endVoting()
+      endVoting(roundNumber)
     } else {
       console.log("❌ Not all players have voted yet. Waiting for more votes.");
     }
@@ -359,7 +359,7 @@ function Game() {
         if (uniqueVoters.size >= allPlayers.length && !showResults && !isEndingVoting) {
           console.log("✅ All players have voted in fetchVotes! Ending voting period.")
           setIsEndingVoting(true)
-          endVoting()
+          endVoting(actualRound)
         }
       }
     }
@@ -426,23 +426,26 @@ function Game() {
     }
   }
 
-  const endVoting = async () => {
+  const endVoting = async (actualRoundNumber) => {
     console.log("=== END VOTING - CALCULATING RESULTS ===");
     
+    // Use the actual round number from votes if provided (to handle stale closures)
+    const roundToProcess = actualRoundNumber || roundNumber;
+    
     // Prevent duplicate processing of the same round using ref (synchronous)
-    if (processedRoundRef.current === roundNumber) {
-      console.log("=== ROUND ALREADY PROCESSED ===", { processedRound: processedRoundRef.current, roundNumber })
+    if (processedRoundRef.current === roundToProcess) {
+      console.log("=== ROUND ALREADY PROCESSED ===", { processedRound: processedRoundRef.current, roundToProcess, roundNumber })
       return
     }
-    processedRoundRef.current = roundNumber
-    console.log("=== PROCESSING NEW ROUND ===", roundNumber)
+    processedRoundRef.current = roundToProcess
+    console.log("=== PROCESSING NEW ROUND ===", roundToProcess)
     
     // Fetch fresh votes from database for current round
     const { data: freshVotes } = await supabase
       .from('votes')
       .select('*')
       .eq('room_code', code.toLowerCase())
-      .eq('round_number', roundNumber)
+      .eq('round_number', roundToProcess)
     
     console.log("Fresh votes from DB:", freshVotes);
     console.log("Fresh votes count:", freshVotes?.length);
