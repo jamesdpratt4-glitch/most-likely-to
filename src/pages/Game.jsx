@@ -15,6 +15,7 @@ function Game() {
   const [showResults, setShowResults] = useState(false)
   const [roundNumber, setRoundNumber] = useState(1)
   const [winner, setWinner] = useState(null)
+  const [winners, setWinners] = useState([])
   const [isEndingVoting, setIsEndingVoting] = useState(false)
   
   const myNickname = localStorage.getItem('nickname')
@@ -49,6 +50,7 @@ function Game() {
             setTimeLeft(15)
             setVotes([])
             setWinner(null)
+            setWinners([])
             setRoundNumber(prev => prev + 1)
             setIsEndingVoting(false)
           }
@@ -264,7 +266,7 @@ function Game() {
     console.log("Total votes count:", votes.length);
     console.log("Players in room:", players);
     
-    // Calculate winner
+    // Calculate winner(s)
     const voteCounts = {}
     votes.forEach(vote => {
       voteCounts[vote.voted_for] = (voteCounts[vote.voted_for] || 0) + 1
@@ -273,25 +275,31 @@ function Game() {
     console.log("Vote counts:", voteCounts);
     
     let maxVotes = 0
-    let roundWinner = null
     for (const [nickname, count] of Object.entries(voteCounts)) {
       if (count > maxVotes) {
         maxVotes = count
-        roundWinner = nickname
       }
     }
     
-    console.log("Winner:", roundWinner, "with", maxVotes, "votes");
+    // Find all players with max votes (handle ties)
+    const roundWinners = Object.entries(voteCounts)
+      .filter(([nickname, count]) => count === maxVotes && count > 0)
+      .map(([nickname]) => nickname)
     
-    setWinner(roundWinner)
+    console.log("Winner(s):", roundWinners, "with", maxVotes, "votes each");
     
-    // Update winner's drink count
-    if (roundWinner) {
-      await supabase
-        .from('players')
-        .update({ drink_count: supabase.raw('drink_count + 1') })
-        .eq('room_code', code.toLowerCase())
-        .eq('nickname', roundWinner)
+    setWinner(roundWinners.length === 1 ? roundWinners[0] : null)
+    setWinners(roundWinners)
+    
+    // Update all winners' drink count
+    if (roundWinners.length > 0) {
+      for (const winnerNickname of roundWinners) {
+        await supabase
+          .from('players')
+          .update({ drink_count: supabase.raw('drink_count + 1') })
+          .eq('room_code', code.toLowerCase())
+          .eq('nickname', winnerNickname)
+      }
     }
   }
 
@@ -314,6 +322,7 @@ function Game() {
     setTimeLeft(15)
     setVotes([])
     setWinner(null)
+    setWinners([])
     setRoundNumber(newRoundNumber)
     setIsEndingVoting(false)
   }
@@ -338,7 +347,7 @@ function Game() {
           {players.map(player => {
             const count = voteCounts[player.nickname] || 0
             const percentage = players.length > 0 ? (count / players.length) * 100 : 0
-            const isWinner = player.nickname === winner
+            const isWinner = winners.includes(player.nickname)
             
             return (
               <div key={player.nickname} className={`vote-bar ${isWinner ? 'winner' : ''}`}>
@@ -355,9 +364,13 @@ function Game() {
           })}
         </div>
         
-        {winner && (
+        {winners.length > 0 && (
           <div className="winner-message">
-            <h3>{winner} drinks! 🍺</h3>
+            {winners.length === 1 ? (
+              <h3>{winners[0]} drinks! 🍺</h3>
+            ) : (
+              <h3>{winners.join(' & ')} drink! 🍺</h3>
+            )}
           </div>
         )}
         
