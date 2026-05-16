@@ -295,7 +295,7 @@ function Game() {
     )
   }
 
-  const votingPlayers = players.filter(p => p.nickname !== myNickname)
+  const votingPlayers = players
 
   return (
     <div className="game">
@@ -308,16 +308,20 @@ function Game() {
       <div className="players-section">
         <h3>Vote for:</h3>
         <div className="vote-buttons">
-          {votingPlayers.map(player => (
-            <button
-              key={player.nickname}
-              className={`btn vote-btn ${hasVoted ? 'disabled' : ''}`}
-              onClick={() => handleVote(player.nickname)}
-              disabled={hasVoted}
-            >
-              {player.nickname}
-            </button>
-          ))}
+          {votingPlayers.map(player => {
+            const isSelf = player.nickname === myNickname
+            return (
+              <button
+                key={player.nickname}
+                className={`btn vote-btn ${hasVoted ? 'disabled' : ''} ${isSelf ? 'self-vote' : ''}`}
+                onClick={() => handleVote(player.nickname)}
+                disabled={hasVoted || isSelf}
+                style={isSelf ? { opacity: 0.5 } : {}}
+              >
+                {player.nickname} {isSelf && '(You)'}
+              </button>
+            )
+          })}
         </div>
       </div>
       
