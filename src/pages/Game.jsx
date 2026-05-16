@@ -22,6 +22,8 @@ function Game() {
   const myNickname = localStorage.getItem('nickname')
 
   useEffect(() => {
+    let roomChannel, playersChannel, votesChannel
+
     const validateAndLoad = async () => {
       // Verify user has required localStorage data
       const storedRoomCode = localStorage.getItem('roomCode')
@@ -69,7 +71,7 @@ function Game() {
       fetchVotes()
 
       // Subscribe to room changes
-      const roomChannel = supabase
+      roomChannel = supabase
         .channel(`room:${code.toLowerCase()}`)
         .on(
           'postgres_changes',
@@ -102,7 +104,7 @@ function Game() {
         .subscribe()
 
       // Subscribe to players changes
-      const playersChannel = supabase
+      playersChannel = supabase
         .channel(`players:${code.toLowerCase()}`)
         .on(
           'postgres_changes',
@@ -119,7 +121,7 @@ function Game() {
         .subscribe()
 
       // Subscribe to votes changes
-      const votesChannel = supabase
+      votesChannel = supabase
         .channel(`votes:${code.toLowerCase()}`)
         .on(
           'postgres_changes',
@@ -135,15 +137,15 @@ function Game() {
           }
         )
         .subscribe()
-
-      return () => {
-        supabase.removeChannel(roomChannel)
-        supabase.removeChannel(playersChannel)
-        supabase.removeChannel(votesChannel)
-      }
     }
 
     validateAndLoad()
+
+    return () => {
+      if (roomChannel) supabase.removeChannel(roomChannel)
+      if (playersChannel) supabase.removeChannel(playersChannel)
+      if (votesChannel) supabase.removeChannel(votesChannel)
+    }
   }, [code, isHost, navigate])
 
   useEffect(() => {
