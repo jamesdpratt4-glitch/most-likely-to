@@ -170,6 +170,12 @@ function Game() {
 
   const handleVote = async (votedFor) => {
     if (hasVoted) return
+    
+    // Prevent self-voting
+    if (votedFor === myNickname) {
+      console.error('Cannot vote for yourself')
+      return
+    }
 
     const { error } = await supabase
       .from('votes')
@@ -289,8 +295,7 @@ function Game() {
     )
   }
 
-  const otherPlayers = players.filter(p => p.nickname !== myNickname)
-  const votingPlayers = isHost ? players : otherPlayers
+  const votingPlayers = players.filter(p => p.nickname !== myNickname)
 
   return (
     <div className="game">
