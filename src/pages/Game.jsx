@@ -21,83 +21,127 @@ function Game() {
   const myNickname = localStorage.getItem('nickname')
 
   useEffect(() => {
-    // Fetch initial room data
-    fetchRoom()
-    fetchPlayers()
-    fetchVotes()
+    const validateAndLoad = async () => {
+      // Verify user has required localStorage data
+      const storedRoomCode = localStorage.getItem('roomCode')
+      const nickname = localStorage.getItem('nickname')
+      
+      if (storedRoomCode?.toLowerCase() !== code.toLowerCase() || !nickname) {
+        navigate('/')
+        return
+      }
 
-    // Subscribe to room changes
-    const roomChannel = supabase
-      .channel(`room:${code.toLowerCase()}`)
-      .on(
-        'postgres_changes',
-        {
-          event: 'UPDATE',
-          schema: 'public',
-          table: 'rooms',
-          filter: `code=eq.${code.toLowerCase()}`
-        },
-        (payload) => {
-          setRoom(payload.new)
-          // If room status changes to 'waiting', redirect to lobby
-          if (payload.new.status === 'waiting') {
-            window.location.href = isHost ? `/host/${code}` : `/lobby/${code}`
+      // Verify room still exists
+      const { data: room, error: roomError } = await supabase
+        .from('rooms')
+        .select('*')
+        .eq('code', code.toLowerCase())
+        .single()
+
+      if (roomError || !room) {
+        localStorage.removeItem('nickname')
+        localStorage.removeItem('roomCode')
+        localStorage.removeItem('isHost')
+        navigate('/')
+        return
+      }
+
+      // Verify player is still in the players table
+      const { data: playerData } = await supabase
+        .from('players')
+        .select('nickname')
+        .eq('room_code', code.toLowerCase())
+        .eq('nickname', nickname)
+        .single()
+
+      if (!playerData) {
+        localStorage.removeItem('nickname')
+        localStorage.removeItem('roomCode')
+        localStorage.removeItem('isHost')
+        navigate('/')
+        return
+      }
+
+      // Fetch initial room data
+      fetchRoom()
+      fetchPlayers()
+      fetchVotes()
+
+      // Subscribe to room changes
+      const roomChannel = supabase
+        .channel(`room:${code.toLowerCase()}`)
+        .on(
+          'postgres_changes',
+          {
+            event: 'UPDATE',
+            schema: 'public',
+            table: 'rooms',
+            filter: `code=eq.${code.toLowerCase()}`
+          },
+          (payload) => {
+            setRoom(payload.new)
+            // If room status changes to 'waiting', redirect to lobby
+            if (payload.new.status === 'waiting') {
+              window.location.href = isHost ? `/host/${code}` : `/lobby/${code}`
+            }
+            // If current_question changes (new round), reset voting state
+            if (payload.old.current_question !== payload.new.current_question) {
+              setShowResults(false)
+              setHasVoted(false)
+              setTimeLeft(15)
+              setVotes([])
+              setWinner(null)
+              setWinners([])
+              setRoundNumber(prev => prev + 1)
+              setIsEndingVoting(false)
+            }
           }
-          // If current_question changes (new round), reset voting state
-          if (payload.old.current_question !== payload.new.current_question) {
-            setShowResults(false)
-            setHasVoted(false)
-            setTimeLeft(15)
-            setVotes([])
-            setWinner(null)
-            setWinners([])
-            setRoundNumber(prev => prev + 1)
-            setIsEndingVoting(false)
+        )
+        .subscribe()
+
+      // Subscribe to players changes
+      const playersChannel = supabase
+        .channel(`players:${code.toLowerCase()}`)
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'players',
+            filter: `room_code=eq.${code.toLowerCase()}`
+          },
+          () => {
+            fetchPlayers()
           }
-        }
-      )
-      .subscribe()
+        )
+        .subscribe()
 
-    // Subscribe to players changes
-    const playersChannel = supabase
-      .channel(`players:${code.toLowerCase()}`)
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'players',
-          filter: `room_code=eq.${code.toLowerCase()}`
-        },
-        () => {
-          fetchPlayers()
-        }
-      )
-      .subscribe()
+      // Subscribe to votes changes
+      const votesChannel = supabase
+        .channel(`votes:${code.toLowerCase()}`)
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'votes',
+            filter: `room_code=eq.${code.toLowerCase()}`
+          },
+          () => {
+            fetchVotes()
+          }
+        )
+        .subscribe()
 
-    // Subscribe to votes changes
-    const votesChannel = supabase
-      .channel(`votes:${code.toLowerCase()}`)
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'votes',
-          filter: `room_code=eq.${code.toLowerCase()}`
-        },
-        () => {
-          fetchVotes()
-        }
-      )
-      .subscribe()
-
-    return () => {
-      supabase.removeChannel(roomChannel)
-      supabase.removeChannel(playersChannel)
-      supabase.removeChannel(votesChannel)
+      return () => {
+        supabase.removeChannel(roomChannel)
+        supabase.removeChannel(playersChannel)
+        supabase.removeChannel(votesChannel)
+      }
     }
-  }, [code, isHost])
+
+    validateAndLoad()
+  }, [code, isHost, navigate])
 
   useEffect(() => {
     if (room && room.status === 'playing' && !showResults) {

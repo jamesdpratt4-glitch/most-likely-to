@@ -8,49 +8,94 @@ function PlayerLobby() {
   const [players, setPlayers] = useState([])
 
   useEffect(() => {
-    // Fetch initial players
-    fetchPlayers()
+    const validateAndLoad = async () => {
+      // Verify user has required localStorage data
+      const storedRoomCode = localStorage.getItem('roomCode')
+      const nickname = localStorage.getItem('nickname')
+      
+      if (storedRoomCode !== code || !nickname) {
+        navigate('/')
+        return
+      }
 
-    // Subscribe to players changes
-    const playersChannel = supabase
-      .channel(`players:${code}`)
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'players',
-          filter: `room_code=eq.${code}`
-        },
-        () => {
-          fetchPlayers()
-        }
-      )
-      .subscribe()
+      // Verify room still exists and is in waiting state
+      const { data: room, error: roomError } = await supabase
+        .from('rooms')
+        .select('*')
+        .eq('code', code)
+        .eq('status', 'waiting')
+        .single()
 
-    // Subscribe to room changes to detect when game starts
-    const roomChannel = supabase
-      .channel(`room:${code}`)
-      .on(
-        'postgres_changes',
-        {
-          event: 'UPDATE',
-          schema: 'public',
-          table: 'rooms',
-          filter: `code=eq.${code}`
-        },
-        (payload) => {
-          if (payload.new.status === 'playing') {
-            navigate(`/game/${code}`)
+      if (roomError || !room) {
+        localStorage.removeItem('nickname')
+        localStorage.removeItem('roomCode')
+        localStorage.removeItem('isHost')
+        navigate('/')
+        return
+      }
+
+      // Verify player is still in the players table
+      const { data: playerData } = await supabase
+        .from('players')
+        .select('nickname')
+        .eq('room_code', code)
+        .eq('nickname', nickname)
+        .single()
+
+      if (!playerData) {
+        localStorage.removeItem('nickname')
+        localStorage.removeItem('roomCode')
+        localStorage.removeItem('isHost')
+        navigate('/')
+        return
+      }
+
+      // Fetch initial players
+      fetchPlayers()
+
+      // Subscribe to players changes
+      const playersChannel = supabase
+        .channel(`players:${code}`)
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'players',
+            filter: `room_code=eq.${code}`
+          },
+          () => {
+            fetchPlayers()
           }
-        }
-      )
-      .subscribe()
+        )
+        .subscribe()
 
-    return () => {
-      supabase.removeChannel(playersChannel)
-      supabase.removeChannel(roomChannel)
+      // Subscribe to room changes to detect when game starts
+      const roomChannel = supabase
+        .channel(`room:${code}`)
+        .on(
+          'postgres_changes',
+          {
+            event: 'UPDATE',
+            schema: 'public',
+            table: 'rooms',
+            filter: `code=eq.${code}`
+          },
+          (payload) => {
+            if (payload.new.status === 'playing') {
+              navigate(`/game/${code}`)
+            }
+          }
+        )
+        .subscribe()
+
+      return () => {
+        supabase.removeChannel(playersChannel)
+        supabase.removeChannel(roomChannel)
+      }
     }
+
+    validateAndLoad()
   }, [code, navigate])
 
   const fetchPlayers = async () => {

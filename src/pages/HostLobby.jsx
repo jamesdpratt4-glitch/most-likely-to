@@ -9,38 +9,74 @@ function HostLobby() {
   const [players, setPlayers] = useState([])
 
   useEffect(() => {
-    // Verify this user is the host
-    const isHost = localStorage.getItem('isHost') === 'true'
-    const storedRoomCode = localStorage.getItem('roomCode')
-    
-    if (!isHost || storedRoomCode !== code) {
-      navigate('/')
-      return
+    const validateAndLoad = async () => {
+      // Verify this user is the host
+      const isHost = localStorage.getItem('isHost') === 'true'
+      const storedRoomCode = localStorage.getItem('roomCode')
+      const nickname = localStorage.getItem('nickname')
+      
+      if (!isHost || storedRoomCode !== code || !nickname) {
+        navigate('/')
+        return
+      }
+
+      // Verify room still exists
+      const { data: room, error: roomError } = await supabase
+        .from('rooms')
+        .select('*')
+        .eq('code', code)
+        .single()
+
+      if (roomError || !room) {
+        localStorage.removeItem('nickname')
+        localStorage.removeItem('roomCode')
+        localStorage.removeItem('isHost')
+        navigate('/')
+        return
+      }
+
+      // Verify host is still in the players table
+      const { data: playerData } = await supabase
+        .from('players')
+        .select('nickname')
+        .eq('room_code', code)
+        .eq('nickname', nickname)
+        .single()
+
+      if (!playerData) {
+        localStorage.removeItem('nickname')
+        localStorage.removeItem('roomCode')
+        localStorage.removeItem('isHost')
+        navigate('/')
+        return
+      }
+
+      // Fetch initial players
+      fetchPlayers()
+
+      // Subscribe to real-time changes
+      const channel = supabase
+        .channel(`players:${code}`)
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'players',
+            filter: `room_code=eq.${code}`
+          },
+          (payload) => {
+            fetchPlayers()
+          }
+        )
+        .subscribe()
+
+      return () => {
+        supabase.removeChannel(channel)
+      }
     }
 
-    // Fetch initial players
-    fetchPlayers()
-
-    // Subscribe to real-time changes
-    const channel = supabase
-      .channel(`players:${code}`)
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'players',
-          filter: `room_code=eq.${code}`
-        },
-        (payload) => {
-          fetchPlayers()
-        }
-      )
-      .subscribe()
-
-    return () => {
-      supabase.removeChannel(channel)
-    }
+    validateAndLoad()
   }, [code, navigate])
 
   const fetchPlayers = async () => {
