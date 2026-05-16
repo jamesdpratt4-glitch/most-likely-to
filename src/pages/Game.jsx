@@ -502,19 +502,33 @@ function Game() {
   }
 
   const handleRemovePlayer = async (playerNickname) => {
-    await supabase
-      .from('players')
-      .delete()
-      .eq('room_code', code.toLowerCase())
-      .eq('nickname', playerNickname)
+    // Don't delete the player from database to preserve their votes
+    // Instead, mark them as removed in the room metadata
+    const { data: room } = await supabase
+      .from('rooms')
+      .select('removed_players')
+      .eq('code', code.toLowerCase())
+      .single()
     
-    // Check if player count dropped below 2
-    const { data: remainingPlayers } = await supabase
+    const removedPlayers = room.removed_players || []
+    if (!removedPlayers.includes(playerNickname)) {
+      removedPlayers.push(playerNickname)
+      
+      await supabase
+        .from('rooms')
+        .update({ removed_players })
+        .eq('code', code.toLowerCase())
+    }
+    
+    // Check if active player count dropped below 2
+    const { data: allPlayers } = await supabase
       .from('players')
       .select('nickname')
       .eq('room_code', code.toLowerCase())
     
-    if (remainingPlayers && remainingPlayers.length < 2) {
+    const activePlayers = allPlayers.filter(p => !removedPlayers.includes(p.nickname))
+    
+    if (activePlayers.length < 2) {
       await supabase
         .from('rooms')
         .update({ status: 'ended' })
@@ -529,6 +543,9 @@ function Game() {
   }
 
   if (showResults) {
+    const removedPlayers = room.removed_players || []
+    const activePlayers = players.filter(p => !removedPlayers.includes(p.nickname))
+    
     const voteCounts = {}
     resultsVotes.forEach(vote => {
       voteCounts[vote.voted_for] = (voteCounts[vote.voted_for] || 0) + 1
@@ -543,13 +560,14 @@ function Game() {
         <div className="vote-chart">
           {players.map(player => {
             const count = voteCounts[player.nickname] || 0
-            const percentage = players.length > 0 ? (count / players.length) * 100 : 0
+            const percentage = activePlayers.length > 0 ? (count / activePlayers.length) * 100 : 0
             const isWinner = winners.includes(player.nickname)
+            const isRemoved = removedPlayers.includes(player.nickname)
             
             return (
-              <div key={player.nickname} className={`vote-bar ${isWinner ? 'winner' : ''}`}>
+              <div key={player.nickname} className={`vote-bar ${isWinner ? 'winner' : ''} ${isRemoved ? 'removed' : ''}`}>
                 <div className="vote-bar-label">
-                  <span>{player.nickname}</span>
+                  <span>{player.nickname}{isRemoved ? ' (removed)' : ''}</span>
                   <span>{count} votes</span>
                 </div>
                 <div 
@@ -588,9 +606,9 @@ function Game() {
 
         {isHost && (
           <div className="players-section" style={{ marginTop: '2rem' }}>
-            <h3>Players ({players.length})</h3>
+            <h3>Players ({activePlayers.length})</h3>
             <ul className="players-list">
-              {players.map((player, index) => (
+              {activePlayers.map((player, index) => (
                 <li key={index} className="player-item">
                   <span>{player.nickname}</span>
                   <button 
