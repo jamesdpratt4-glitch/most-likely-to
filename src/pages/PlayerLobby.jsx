@@ -53,22 +53,10 @@ function PlayerLobby() {
       // Fetch initial players
       fetchPlayers()
 
-      // Subscribe to players changes
-      const playersChannel = supabase
-        .channel(`players:${code}`)
-        .on(
-          'postgres_changes',
-          {
-            event: '*',
-            schema: 'public',
-            table: 'players',
-            filter: `room_code=eq.${code}`
-          },
-          () => {
-            fetchPlayers()
-          }
-        )
-        .subscribe()
+      // Poll players every 2 seconds instead of subscription (to avoid conflicts)
+      const playersInterval = setInterval(() => {
+        fetchPlayers()
+      }, 2000)
 
       // Subscribe to room changes to detect when game starts
       const roomChannel = supabase
@@ -90,7 +78,7 @@ function PlayerLobby() {
         .subscribe()
 
       return () => {
-        supabase.removeChannel(playersChannel)
+        clearInterval(playersInterval)
         supabase.removeChannel(roomChannel)
       }
     }

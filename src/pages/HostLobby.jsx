@@ -54,25 +54,13 @@ function HostLobby() {
       // Fetch initial players
       fetchPlayers()
 
-      // Subscribe to real-time changes
-      const channel = supabase
-        .channel(`players:${code}`)
-        .on(
-          'postgres_changes',
-          {
-            event: '*',
-            schema: 'public',
-            table: 'players',
-            filter: `room_code=eq.${code}`
-          },
-          (payload) => {
-            fetchPlayers()
-          }
-        )
-        .subscribe()
+      // Poll players every 2 seconds instead of subscription (to avoid conflicts)
+      const playersInterval = setInterval(() => {
+        fetchPlayers()
+      }, 2000)
 
       return () => {
-        supabase.removeChannel(channel)
+        clearInterval(playersInterval)
       }
     }
 
