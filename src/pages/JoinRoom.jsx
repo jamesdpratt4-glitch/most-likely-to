@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
-import './App.css'
+import '../App.css'
 
 function JoinRoom() {
   const { roomCode } = useParams()
@@ -84,7 +84,7 @@ function JoinRoom() {
 
   return (
     <div className="home">
-      <div className="version">v1.0.39</div>
+      <div className="version">v1.0.40</div>
       <h1 className="title">Most Likely To</h1>
       <div className="join-form">
         <h2>Join Room</h2>
