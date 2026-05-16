@@ -504,7 +504,8 @@ function Game() {
             winnerNickname, 
             currentCount: playerData.drink_count, 
             votesReceived, 
-            newCount: newDrinkCount 
+            newCount: newDrinkCount,
+            roundNumber
           })
           
           const { error: updateError } = await supabase
