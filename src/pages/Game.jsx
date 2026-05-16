@@ -267,7 +267,7 @@ function Game() {
   const fetchPlayers = async () => {
     const { data } = await supabase
       .from('players')
-      .select('nickname, drink_count')
+      .select('nickname, drink_count, emoji')
       .eq('room_code', code.toLowerCase())
     
     if (data) {
@@ -567,7 +567,10 @@ function Game() {
             return (
               <div key={player.nickname} className={`vote-bar ${isWinner ? 'winner' : ''} ${isRemoved ? 'removed' : ''}`}>
                 <div className="vote-bar-label">
-                  <span>{player.nickname}{isRemoved ? ' (removed)' : ''}</span>
+                  <span>
+                    {player.emoji && <span style={{ marginRight: '0.5rem' }}>{player.emoji}</span>}
+                    {player.nickname}{isRemoved ? ' (removed)' : ''}
+                  </span>
                   <span>{count} votes</span>
                 </div>
                 <div 
@@ -610,7 +613,10 @@ function Game() {
             <ul className="players-list">
               {activePlayers.map((player, index) => (
                 <li key={index} className="player-item">
-                  <span>{player.nickname}</span>
+                  <span>
+                    {player.emoji && <span style={{ marginRight: '0.5rem' }}>{player.emoji}</span>}
+                    {player.nickname}
+                  </span>
                   <button 
                     className="remove-player-btn"
                     onClick={() => handleRemovePlayer(player.nickname)}

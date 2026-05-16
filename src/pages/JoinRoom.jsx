@@ -1,6 +1,7 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
+import { assignRandomEmoji } from '../lib/emojis'
 import '../App.css'
 
 function JoinRoom() {
@@ -55,11 +56,21 @@ function JoinRoom() {
       }
 
       // Add player to room
+      // Get existing emojis in the room to avoid duplicates
+      const { data: existingPlayers } = await supabase
+        .from('players')
+        .select('emoji')
+        .eq('room_code', roomCode.toUpperCase())
+      
+      const existingEmojis = existingPlayers?.map(p => p.emoji).filter(Boolean) || []
+      const emoji = assignRandomEmoji(existingEmojis)
+
       const { error: insertError } = await supabase
         .from('players')
         .insert({
           room_code: roomCode.toUpperCase(),
           nickname: nickname.trim(),
+          emoji,
           drink_count: 0
         })
 
@@ -83,7 +94,7 @@ function JoinRoom() {
 
   return (
     <div className="home">
-      <div className="version">v1.0.61</div>
+      <div className="version">v1.0.62</div>
       <h1 className="title">Most Likely To</h1>
       <div className="join-form">
         <h2>Join Room</h2>

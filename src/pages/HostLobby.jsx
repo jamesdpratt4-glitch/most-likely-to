@@ -86,11 +86,11 @@ function HostLobby() {
   const fetchPlayers = async () => {
     const { data, error } = await supabase
       .from('players')
-      .select('nickname')
+      .select('nickname, emoji')
       .eq('room_code', code)
     
     if (data) {
-      setPlayers(data.map(p => p.nickname))
+      setPlayers(data)
     }
   }
 
@@ -136,8 +136,11 @@ function HostLobby() {
       <div className="players-section">
         <h2>Players ({players.length})</h2>
         <ul className="players-list">
-          {players.map((nickname, index) => (
-            <li key={index} className="player-item">{nickname}</li>
+          {players.map((player, index) => (
+            <li key={index} className="player-item">
+              {player.emoji && <span style={{ marginRight: '0.5rem' }}>{player.emoji}</span>}
+              {player.nickname}
+            </li>
           ))}
         </ul>
       </div>

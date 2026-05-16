@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Routes, Route, useNavigate } from 'react-router-dom'
 import { supabase } from './lib/supabase'
+import { assignRandomEmoji } from './lib/emojis'
 import HostLobby from './pages/HostLobby'
 import PlayerLobby from './pages/PlayerLobby'
 import Game from './pages/Game'
@@ -8,7 +9,7 @@ import GameOver from './pages/GameOver'
 import JoinRoom from './pages/JoinRoom'
 import './App.css'
 
-const APP_VERSION = "1.0.61"
+const APP_VERSION = "1.0.62"
 
 function Home() {
   const navigate = useNavigate()
@@ -44,11 +45,13 @@ function Home() {
     }
 
     // Insert host into players table
+    const emoji = assignRandomEmoji()
     const { error: playerError } = await supabase
       .from('players')
       .insert({
         room_code: code,
         nickname: hostNickname,
+        emoji,
         drink_count: 0,
         last_seen: new Date().toISOString()
       })
@@ -96,12 +99,22 @@ function Home() {
       return
     }
 
-    // Insert player into players table
+    // Insert player into room
+    // Get existing emojis in the room to avoid duplicates
+    const { data: existingPlayersInRoom } = await supabase
+      .from('players')
+      .select('emoji')
+      .eq('room_code', roomCode)
+    
+    const existingEmojis = existingPlayersInRoom?.map(p => p.emoji).filter(Boolean) || []
+    const emoji = assignRandomEmoji(existingEmojis)
+
     const { error: playerError } = await supabase
       .from('players')
       .insert({
         room_code: roomCode,
-        nickname,
+        nickname: nickname,
+        emoji,
         drink_count: 0,
         last_seen: new Date().toISOString()
       })
