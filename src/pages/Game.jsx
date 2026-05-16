@@ -325,6 +325,7 @@ function Game() {
     
     console.log("Vote data to insert:", voteData);
 
+    console.log("Attempting to insert vote:", voteData);
     const { data, error } = await supabase
       .from('votes')
       .insert(voteData)
@@ -336,6 +337,12 @@ function Game() {
     if (error) {
       console.error("Vote insertion error:", error)
       setHasVoted(false) // Re-enable button if error occurs
+      return
+    }
+    
+    if (!data || data.length === 0) {
+      console.error("Vote insertion returned no data")
+      setHasVoted(false)
       return
     }
   }
