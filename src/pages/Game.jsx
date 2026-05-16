@@ -496,7 +496,12 @@ function Game() {
 
       for (const winnerNickname of roundWinners) {
         console.log("=== PROCESSING WINNER ===", winnerNickname)
-        // Use RPC function for atomic increment to prevent race conditions
+        // Only host updates drink counts to prevent race conditions
+        if (!isHost) {
+          console.log("=== SKIPPING DRINK UPDATE - NOT HOST ===")
+          continue
+        }
+        
         const votesReceived = voteCounts[winnerNickname] || 0
         console.log("=== DRINK COUNT INCREMENT ===", { 
           winnerNickname, 
@@ -504,14 +509,32 @@ function Game() {
           roundNumber
         })
         
-        const { data, error: rpcError } = await supabase
-          .rpc('increment_drink_count', {
-            p_room_code: code.toLowerCase(),
-            p_nickname: winnerNickname,
-            p_increment: votesReceived
-          })
+        // Get current drink count and update
+        const { data: playerData } = await supabase
+          .from('players')
+          .select('drink_count')
+          .eq('room_code', code.toLowerCase())
+          .eq('nickname', winnerNickname)
+          .single()
         
-        console.log("=== DRINK COUNT UPDATE RESULT ===", { data, error: rpcError })
+        if (playerData) {
+          const newDrinkCount = (playerData.drink_count || 0) + votesReceived
+          console.log("=== DRINK COUNT UPDATE ===", { 
+            winnerNickname, 
+            currentCount: playerData.drink_count, 
+            votesReceived, 
+            newCount: newDrinkCount,
+            roundNumber
+          })
+          
+          const { error: updateError } = await supabase
+            .from('players')
+            .update({ drink_count: newDrinkCount })
+            .eq('room_code', code.toLowerCase())
+            .eq('nickname', winnerNickname)
+          
+          console.log("=== DRINK COUNT UPDATE RESULT ===", { error: updateError })
+        }
       }
     }
   }
