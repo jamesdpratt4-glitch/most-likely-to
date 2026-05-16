@@ -101,6 +101,7 @@ function Game() {
           filter: `code=eq.${code.toLowerCase()}`
         },
         (payload) => {
+          console.log("=== ROOM SUBSCRIPTION TRIGGERED ===", payload)
           setRoom(payload.new)
           // Sync round number from database
           if (payload.new.round_number !== undefined) {
@@ -128,8 +129,11 @@ function Game() {
           }
           // Only reset voting state if current_question changes AND round_number increases
           // This prevents resetting showResults when other room fields are updated
-          if (payload.old.current_question !== payload.new.current_question && 
-              payload.new.round_number > (payload.old.round_number || 0)) {
+          const questionChanged = payload.old.current_question !== payload.new.current_question
+          const roundIncreased = payload.new.round_number > (payload.old.round_number || 0)
+          console.log("=== ROOM UPDATE CHECK ===", { questionChanged, roundIncreased, oldQuestion: payload.old.current_question, newQuestion: payload.new.current_question, oldRound: payload.old.round_number, newRound: payload.new.round_number })
+          if (questionChanged && roundIncreased) {
+            console.log("=== RESETTING VOTING STATE FOR NEW ROUND ===")
             setShowResults(false)
             setHasVoted(false)
             setTimeLeft(15)
