@@ -81,6 +81,12 @@ function HostLobby() {
   const handleStartGame = async () => {
     const randomQuestion = questions[Math.floor(Math.random() * questions.length)]
     
+    // Clear old votes for this room before starting new game
+    await supabase
+      .from('votes')
+      .delete()
+      .eq('room_code', code)
+    
     const { error } = await supabase
       .from('rooms')
       .update({
