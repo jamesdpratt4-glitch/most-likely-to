@@ -87,12 +87,16 @@ function HostLobby() {
       .delete()
       .eq('room_code', code)
     
+    // Calculate round end time (15 seconds from now)
+    const roundEndTime = new Date(Date.now() + 15 * 1000).toISOString()
+    
     const { error } = await supabase
       .from('rooms')
       .update({
         status: 'playing',
         current_question: randomQuestion,
-        round_number: 1
+        round_number: 1,
+        round_end_time: roundEndTime
       })
       .eq('code', code)
     

@@ -138,25 +138,27 @@ function Game() {
   }, [code, isHost, navigate])
 
   useEffect(() => {
-    if (room && room.status === 'playing' && !showResults) {
-      // Start countdown when game starts
+    if (room && room.status === 'playing' && !showResults && room.round_end_time) {
+      // Calculate remaining time from database timestamp
       const timer = setInterval(() => {
-        setTimeLeft((prev) => {
-          if (prev <= 1) {
-            clearInterval(timer)
-            // Only end voting if not all players have voted (auto-advance handles that case)
-            const uniqueVoters = new Set(votes.map(v => v.voter_nickname))
-            if (uniqueVoters.size < players.length) {
-              console.log("⏰ Timer ended but not all players voted. Ending voting.")
-              endVoting()
-            } else {
-              console.log("⏰ Timer ended but all players already voted. Auto-advance handled it.")
-            }
-            return 0
+        const now = new Date().getTime()
+        const endTime = new Date(room.round_end_time).getTime()
+        const remaining = Math.max(0, Math.ceil((endTime - now) / 1000))
+        
+        setTimeLeft(remaining)
+        
+        if (remaining <= 0) {
+          clearInterval(timer)
+          // Only end voting if not all players have voted (auto-advance handles that case)
+          const uniqueVoters = new Set(votes.map(v => v.voter_nickname))
+          if (uniqueVoters.size < players.length) {
+            console.log("⏰ Timer ended but not all players voted. Ending voting.")
+            endVoting()
+          } else {
+            console.log("⏰ Timer ended but all players already voted. Auto-advance handled it.")
           }
-          return prev - 1
-        })
-      }, 1000)
+        }
+      }, 100)
 
       return () => clearInterval(timer)
     }
@@ -435,19 +437,20 @@ function Game() {
     const randomQuestion = questions[Math.floor(Math.random() * questions.length)]
     
     const newRoundNumber = roundNumber + 1
+    const roundEndTime = new Date(Date.now() + 15 * 1000).toISOString()
     
     await supabase
       .from('rooms')
       .update({
         current_question: randomQuestion,
-        round_number: newRoundNumber
+        round_number: newRoundNumber,
+        round_end_time: roundEndTime
       })
       .eq('code', code.toLowerCase())
     
     // Reset state for new round
     setShowResults(false)
     setHasVoted(false)
-    setTimeLeft(15)
     setVotes([])
     setResultsVotes([])
     setWinner(null)
