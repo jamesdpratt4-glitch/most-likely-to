@@ -130,12 +130,10 @@ function Game() {
           }
           // Only reset voting state if current_question changes AND round_number increases
           // This prevents resetting showResults when other room fields are updated
-          // Also skip if this is the initial room creation (old values are undefined)
           const questionChanged = payload.old.current_question !== payload.new.current_question
           const roundIncreased = payload.new.round_number > (payload.old.round_number || 0)
-          const isInitialCreation = payload.old.current_question === undefined && payload.old.round_number === undefined
-          console.log("=== ROOM UPDATE CHECK ===", { questionChanged, roundIncreased, isInitialCreation, oldQuestion: payload.old.current_question, newQuestion: payload.new.current_question, oldRound: payload.old.round_number, newRound: payload.new.round_number })
-          if (questionChanged && roundIncreased && !isInitialCreation) {
+          console.log("=== ROOM UPDATE CHECK ===", { questionChanged, roundIncreased, oldQuestion: payload.old.current_question, newQuestion: payload.new.current_question, oldRound: payload.old.round_number, newRound: payload.new.round_number })
+          if (questionChanged && roundIncreased) {
             console.log("=== RESETTING VOTING STATE FOR NEW ROUND ===")
             setShowResults(false)
             setHasVoted(false)
@@ -145,6 +143,7 @@ function Game() {
             setWinner(null)
             setWinners([])
             setIsEndingVoting(false)
+            processedRoundRef.current = null // Reset processed round for new round
           }
         }
       )
