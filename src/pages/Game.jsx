@@ -141,18 +141,29 @@ function Game() {
 
     // Poll room status every 2 seconds to check for game end (fallback for subscription issues)
     const roomStatusInterval = setInterval(async () => {
-      const { data: roomData } = await supabase
-        .from('rooms')
-        .select('status')
-        .eq('code', code.toLowerCase())
-        .single()
-      
-      if (roomData?.status === 'ended') {
-        console.log("=== GAME ENDED DETECTED VIA POLLING - REDIRECTING TO HOME ===")
-        localStorage.removeItem('nickname')
-        localStorage.removeItem('roomCode')
-        localStorage.removeItem('isHost')
-        navigate('/')
+      try {
+        const { data: roomData, error } = await supabase
+          .from('rooms')
+          .select('status')
+          .eq('code', code.toLowerCase())
+          .single()
+        
+        if (error) {
+          console.log("=== ROOM STATUS POLL ERROR ===", error)
+          return
+        }
+        
+        console.log("=== ROOM STATUS POLL ===", roomData?.status)
+        
+        if (roomData?.status === 'ended') {
+          console.log("=== GAME ENDED DETECTED VIA POLLING - REDIRECTING TO HOME ===")
+          localStorage.removeItem('nickname')
+          localStorage.removeItem('roomCode')
+          localStorage.removeItem('isHost')
+          navigate('/')
+        }
+      } catch (err) {
+        console.log("=== ROOM STATUS POLL CATCH ERROR ===", err)
       }
     }, 2000)
 
