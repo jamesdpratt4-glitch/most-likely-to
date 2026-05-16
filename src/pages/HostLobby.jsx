@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { questions } from '../data/questions'
-import { QRCode } from 'qrcode.react'
+import QRCode from 'react-qr-code'
 
 function HostLobby() {
   const { code } = useParams()
