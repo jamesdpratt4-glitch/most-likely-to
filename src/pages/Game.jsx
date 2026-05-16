@@ -481,15 +481,6 @@ function Game() {
   }
 
   const handleNextRound = async () => {
-    // Check if we should show summary (every 5 rounds)
-    if (roundNumber % 5 === 0) {
-      await supabase
-        .from('rooms')
-        .update({ show_summary: true })
-        .eq('code', code.toLowerCase())
-      return
-    }
-
     const { questions } = await import('../data/questions')
     const randomQuestion = questions[Math.floor(Math.random() * questions.length)]
     
@@ -515,6 +506,13 @@ function Game() {
     setWinners([])
     setRoundNumber(newRoundNumber)
     setIsEndingVoting(false)
+  }
+
+  const handleShowSummary = async () => {
+    await supabase
+      .from('rooms')
+      .update({ show_summary: true })
+      .eq('code', code.toLowerCase())
   }
 
   const handleContinueFromSummary = async () => {
@@ -702,6 +700,13 @@ function Game() {
           <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center' }}>
             <button className="btn btn-primary btn-large" onClick={handleNextRound}>
               Next Round
+            </button>
+            <button 
+              className="btn btn-secondary btn-large" 
+              onClick={handleShowSummary}
+              style={{ backgroundColor: '#667eea' }}
+            >
+              Drinks So Far
             </button>
             <button 
               className="btn btn-secondary btn-large" 
