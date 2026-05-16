@@ -92,6 +92,13 @@ function Game() {
           if (payload.new.status === 'waiting') {
             window.location.href = isHost ? `/host/${code}` : `/lobby/${code}`
           }
+          // If room status changes to 'ended', redirect to home and clear localStorage
+          if (payload.new.status === 'ended') {
+            localStorage.removeItem('nickname')
+            localStorage.removeItem('roomCode')
+            localStorage.removeItem('isHost')
+            navigate('/')
+          }
           // If current_question changes (new round), reset voting state
           if (payload.old.current_question !== payload.new.current_question) {
             setShowResults(false)
@@ -459,6 +466,20 @@ function Game() {
     setIsEndingVoting(false)
   }
 
+  const handleEndGame = async () => {
+    await supabase
+      .from('rooms')
+      .update({ status: 'ended' })
+      .eq('code', code.toLowerCase())
+    
+    // Clear localStorage
+    localStorage.removeItem('nickname')
+    localStorage.removeItem('roomCode')
+    localStorage.removeItem('isHost')
+    
+    navigate('/')
+  }
+
   if (!room || room.status === 'waiting') {
     return <div className="game">Loading...</div>
   }
@@ -507,9 +528,18 @@ function Game() {
         )}
         
         {isHost && (
-          <button className="btn btn-primary btn-large" onClick={handleNextRound}>
-            Next Round
-          </button>
+          <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center' }}>
+            <button className="btn btn-primary btn-large" onClick={handleNextRound}>
+              Next Round
+            </button>
+            <button 
+              className="btn btn-secondary btn-large" 
+              onClick={handleEndGame}
+              style={{ backgroundColor: '#ff4444' }}
+            >
+              End Game
+            </button>
+          </div>
         )}
       </div>
     )
