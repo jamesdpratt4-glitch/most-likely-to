@@ -7,7 +7,7 @@ import Game from './pages/Game'
 import GameOver from './pages/GameOver'
 import './App.css'
 
-const APP_VERSION = "1.0.37"
+const APP_VERSION = "1.0.38"
 
 function Home() {
   const navigate = useNavigate()

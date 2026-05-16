@@ -1,5 +1,4 @@
 import { useNavigate } from 'react-router-dom'
-import './Game.css'
 
 function GameOver() {
   const navigate = useNavigate()
