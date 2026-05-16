@@ -496,7 +496,7 @@ function Game() {
 
       for (const winnerNickname of roundWinners) {
         console.log("=== PROCESSING WINNER ===", winnerNickname)
-        // Use atomic increment to prevent race conditions
+        // Use RPC function for atomic increment to prevent race conditions
         const votesReceived = voteCounts[winnerNickname] || 0
         console.log("=== DRINK COUNT INCREMENT ===", { 
           winnerNickname, 
@@ -504,13 +504,14 @@ function Game() {
           roundNumber
         })
         
-        const { error: updateError } = await supabase
-          .from('players')
-          .update({ drink_count: supabase.raw(`drink_count + ${votesReceived}`) })
-          .eq('room_code', code.toLowerCase())
-          .eq('nickname', winnerNickname)
+        const { data, error: rpcError } = await supabase
+          .rpc('increment_drink_count', {
+            p_room_code: code.toLowerCase(),
+            p_nickname: winnerNickname,
+            p_increment: votesReceived
+          })
         
-        console.log("=== DRINK COUNT UPDATE RESULT ===", { error: updateError })
+        console.log("=== DRINK COUNT UPDATE RESULT ===", { data, error: rpcError })
       }
     }
   }

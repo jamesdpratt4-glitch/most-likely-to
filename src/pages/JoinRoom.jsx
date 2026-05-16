@@ -94,7 +94,7 @@ function JoinRoom() {
 
   return (
     <div className="home">
-      <div className="version">v1.0.76</div>
+      <div className="version">v1.0.77</div>
       <h1 className="title">Most Likely To</h1>
       <div className="join-form">
         <h2>Join Room</h2>
