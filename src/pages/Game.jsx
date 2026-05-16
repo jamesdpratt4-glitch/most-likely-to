@@ -142,8 +142,9 @@ function Game() {
             setShowDetailedVotes(false) // Reset reveal votes for new round
             processedRoundRef.current = null // Reset processed round for new round
           }
-        )
-        .subscribe()
+        }
+      )
+      .subscribe()
 
       // Subscribe to votes changes (critical for voting sync)
       const votesChannel = supabase
