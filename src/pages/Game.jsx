@@ -104,9 +104,9 @@ function Game() {
           if (payload.new.round_number !== undefined) {
             setRoundNumber(payload.new.round_number)
           }
-          // Sync show_summary state
-          if (payload.new.show_summary !== undefined) {
-            setShowSummary(payload.new.show_summary)
+          // Sync show_summary state - check if it changed
+          if (payload.new.show_summary !== payload.old.show_summary) {
+            setShowSummary(payload.new.show_summary || false)
             if (payload.new.show_summary) {
               setShowResults(false)
             }
