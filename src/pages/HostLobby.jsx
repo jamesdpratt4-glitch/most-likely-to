@@ -54,13 +54,10 @@ function HostLobby() {
       }
 
       // Generate QR code data URL after component is mounted
-      const appUrl = import.meta.env.VITE_APP_URL || window.location.origin
+      const appUrl = import.meta.env.VITE_APP_URL || 'https://most-likely-to-git-main-jamesglitch-projects.vercel.app'
       const joinUrl = `${appUrl}/join/${code}`
       console.log('QR Code URL:', joinUrl)
-      console.log('window.location.origin:', window.location.origin)
-      console.log('window.location.protocol:', window.location.protocol)
-      console.log('window.location.host:', window.location.host)
-      console.log('window.location.hostname:', window.location.hostname)
+      console.log('Using appUrl:', appUrl)
       QRCode.toDataURL(joinUrl, { width: 200, margin: 1 }, (err, url) => {
         if (err) {
           console.error('Error generating QR code:', err)
