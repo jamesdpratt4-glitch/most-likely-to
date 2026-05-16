@@ -47,6 +47,12 @@ function Game() {
         return
       }
 
+      // If room status is 'waiting', redirect to lobby
+      if (room.status === 'waiting') {
+        window.location.href = isHost ? `/host/${code}` : `/lobby/${code}`
+        return
+      }
+
       const handleEndGame = async () => {
         await supabase
           .from('rooms')
