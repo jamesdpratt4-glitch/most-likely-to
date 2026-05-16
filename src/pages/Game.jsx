@@ -543,7 +543,7 @@ function Game() {
   }
 
   if (showResults) {
-    const removedPlayers = room.removed_players || []
+    const removedPlayers = room?.removed_players || []
     const activePlayers = players.filter(p => !removedPlayers.includes(p.nickname))
     
     const voteCounts = {}
