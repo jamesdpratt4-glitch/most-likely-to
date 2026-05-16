@@ -5,9 +5,10 @@ import HostLobby from './pages/HostLobby'
 import PlayerLobby from './pages/PlayerLobby'
 import Game from './pages/Game'
 import GameOver from './pages/GameOver'
+import JoinRoom from './pages/JoinRoom'
 import './App.css'
 
-const APP_VERSION = "1.0.38"
+const APP_VERSION = "1.0.39"
 
 function Home() {
   const navigate = useNavigate()
@@ -268,6 +269,7 @@ function App() {
       <Route path="/lobby/:code" element={<PlayerLobby />} />
       <Route path="/game/:code" element={<Game />} />
       <Route path="/game-over" element={<GameOver />} />
+      <Route path="/join/:roomCode" element={<JoinRoom />} />
     </Routes>
   )
 }

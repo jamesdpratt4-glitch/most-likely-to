@@ -86,9 +86,33 @@
 .room-code {
   font-size: 6rem;
   font-weight: 800;
-  margin-bottom: 3rem;
+  margin-bottom: 2rem;
   color: #ffffff;
   letter-spacing: 0.1em;
+}
+
+.qr-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 3rem;
+}
+
+.qr-label {
+  font-size: 1.25rem;
+  color: #a0a0a0;
+  margin-bottom: 1rem;
+}
+
+.qr-code {
+  background: #ffffff;
+  padding: 1rem;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+.qr-code canvas {
+  display: block;
 }
 
 .players-section {
@@ -154,6 +178,20 @@
 
 .input-field::placeholder {
   color: #666;
+}
+
+.readonly-input {
+  width: 100%;
+  padding: 1rem 1.5rem;
+  font-size: 1.1rem;
+  border-radius: 8px;
+  border: 2px solid #333;
+  background: #2a2a2a;
+  color: #a0a0a0;
+  outline: none;
+  font-weight: 600;
+  text-align: center;
+  letter-spacing: 0.1em;
 }
 
 .error-message {

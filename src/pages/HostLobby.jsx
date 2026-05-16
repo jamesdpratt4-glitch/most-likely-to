@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { questions } from '../data/questions'
+import QRCode from 'qrcode.react'
 
 function HostLobby() {
   const { code } = useParams()
@@ -109,6 +110,17 @@ function HostLobby() {
     <div className="host-lobby">
       <p className="room-label">Room Code</p>
       <h1 className="room-code">{code}</h1>
+      
+      <div className="qr-section">
+        <p className="qr-label">Scan to join</p>
+        <div className="qr-code">
+          <QRCode 
+            value={`${window.location.origin}/join/${code}`}
+            size={200}
+            level="M"
+          />
+        </div>
+      </div>
       
       <div className="players-section">
         <h2>Players ({players.length})</h2>
