@@ -115,10 +115,18 @@ function Game() {
 
   useEffect(() => {
     // Check if all players have voted
+    console.log("=== VOTE COMPLETION CHECK ===");
+    console.log("Total players in room:", players.length);
+    console.log("Votes received this round:", votes.length);
+    console.log("Round number:", roundNumber);
+    console.log("Show results:", showResults);
+    console.log("Condition check:", players.length > 0 && votes.length >= players.length && !showResults);
+    
     if (players.length > 0 && votes.length >= players.length && !showResults) {
+      console.log("All players have voted! Ending voting period.");
       endVoting()
     }
-  }, [votes, players, showResults])
+  }, [votes, players, showResults, roundNumber])
 
   const fetchRoom = async () => {
     const { data } = await supabase
@@ -159,6 +167,12 @@ function Game() {
       .select('*')
       .eq('room_code', code.toLowerCase())
       .eq('round_number', roundNumber)
+    
+    console.log("=== FETCH VOTES CALLED ===");
+    console.log("Room code:", code.toLowerCase());
+    console.log("Round number:", roundNumber);
+    console.log("Votes fetched:", data);
+    console.log("Votes count:", data?.length);
     
     if (data) {
       setVotes(data)
