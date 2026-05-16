@@ -21,6 +21,7 @@ function Game() {
   const [winners, setWinners] = useState([])
   const [isEndingVoting, setIsEndingVoting] = useState(false)
   const [showDetailedVotes, setShowDetailedVotes] = useState(false)
+  const [showTransition, setShowTransition] = useState(false)
   const processedRoundRef = useRef(null)
 
   useEffect(() => {
@@ -136,6 +137,7 @@ function Game() {
           if (questionChanged && roundIncreased && (!showSummaryChanged || showSummaryBeingSetToFalse)) {
             console.log("=== RESETTING VOTING STATE FOR NEW ROUND ===")
             setShowResults(false)
+            setShowTransition(false)
             setHasVoted(false)
             setTimeLeft(15)
             setVotes([])
@@ -403,6 +405,7 @@ function Game() {
 
     // Force local button lockout immediately
     setHasVoted(true)
+    setShowTransition(true)
 
     // Force dump variables to console
     console.log("=== VOTING DEBUG PROFILE ===");
@@ -484,8 +487,11 @@ function Game() {
       setResultsVotes(freshVotes)
     }
     
-    // Show results directly
-    setShowResults(true)
+    // Show results after 1 second delay to allow transition screen to be visible
+    setTimeout(() => {
+      setShowResults(true)
+      setShowTransition(false)
+    }, 1000)
     
     // Calculate winner(s) using fresh votes
     const voteCounts = {}
@@ -552,6 +558,7 @@ function Game() {
     // Reset state for new round
     processedRoundRef.current = null
     setShowResults(false)
+    setShowTransition(false)
     setShowSummary(false)
     setHasVoted(false)
     setVotes([])
@@ -597,6 +604,7 @@ function Game() {
     // Reset state for new round
     processedRoundRef.current = null
     setShowResults(false)
+    setShowTransition(false)
     setShowSummary(false)
     setHasVoted(false)
     setVotes([])
@@ -712,6 +720,84 @@ function Game() {
           {!isHost && (
             <div className="mt-8 text-slate-400 text-sm font-medium">
               Waiting for host to start next round...
+            </div>
+          )}
+        </div>
+      </div>
+    )
+  }
+
+  if (showTransition) {
+    const uniqueVoters = new Set(votes.map(v => v.voter_nickname))
+    const votesCast = uniqueVoters.size
+    const totalPlayers = players.length
+    const progressPercentage = totalPlayers > 0 ? (votesCast / totalPlayers) * 100 : 0
+    
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-slate-950 text-white p-5">
+        <div className="container mx-auto px-4 max-w-2xl text-center">
+          {/* Animated checkmark icon */}
+          <div className="mb-8 animate-bounce">
+            <div className="w-20 h-20 mx-auto rounded-full bg-indigo-500/20 flex items-center justify-center border-2 border-indigo-500 shadow-lg shadow-indigo-500/30">
+              <svg className="w-10 h-10 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              </svg>
+            </div>
+          </div>
+          
+          <h2 className="text-4xl font-bold mb-4 text-white tracking-tight animate-fade-in-up">Vote Submitted!</h2>
+          <p className="text-xl text-slate-300 mb-12 animate-fade-in-up" style={{ animationDelay: '100ms' }}>Waiting for other players...</p>
+          
+          {/* Vote progress card */}
+          <div className="w-full bg-zinc-900/50 p-8 rounded-2xl border border-slate-800 mb-8 shadow-xl animate-fade-in-up" style={{ animationDelay: '200ms' }}>
+            <div className="flex justify-between items-center mb-6">
+              <span className="text-lg font-semibold text-slate-200">Votes Cast</span>
+              <span className="text-2xl font-bold text-white">
+                {votesCast} <span className="text-slate-400 text-lg">/ {totalPlayers}</span>
+              </span>
+            </div>
+            
+            {/* Progress bar */}
+            <div className="w-full h-3 bg-zinc-800 rounded-full overflow-hidden mb-4">
+              <div 
+                className="h-full bg-gradient-to-r from-indigo-500 to-indigo-400 rounded-full transition-all duration-500 ease-out shadow-lg shadow-indigo-500/30"
+                style={{ width: `${progressPercentage}%` }}
+              />
+            </div>
+            
+            {/* Player status indicators */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-6">
+              {players.map((player, index) => {
+                const hasVoted = uniqueVoters.has(player.nickname)
+                return (
+                  <div 
+                    key={player.nickname}
+                    className={`flex flex-col items-center p-3 rounded-lg border transition-all duration-300 ${
+                      hasVoted 
+                        ? 'bg-indigo-500/10 border-indigo-500/30' 
+                        : 'bg-zinc-800/50 border-slate-700/50'
+                    }`}
+                    style={{ animationDelay: `${300 + index * 50}ms` }}
+                  >
+                    <span className="text-2xl mb-1">{player.emoji}</span>
+                    <span className="text-sm font-medium text-slate-300 truncate w-full text-center">{player.nickname}</span>
+                    {hasVoted && (
+                      <div className="mt-1">
+                        <svg className="w-4 h-4 text-indigo-400" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                        </svg>
+                      </div>
+                    )}
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+          
+          {/* Timer display */}
+          {timeLeft > 0 && (
+            <div className="text-slate-400 text-lg font-medium animate-pulse">
+              Time remaining: {timeLeft}s
             </div>
           )}
         </div>
