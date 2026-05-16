@@ -211,16 +211,25 @@ function Game() {
     console.log("Current Room Code Variable:", code);
     console.log("Current Round Number Variable:", roundNumber);
     console.log("My Nickname (Voter):", myNickname);
+    console.log("Is Host:", isHost);
     console.log("Target Player Voted For:", votedFor);
 
-    const { error } = await supabase
+    const voteData = {
+      room_code: code.toLowerCase(),
+      round_number: roundNumber,
+      voter_nickname: myNickname,
+      voted_for: votedFor
+    }
+    
+    console.log("Vote data to insert:", voteData);
+
+    const { data, error } = await supabase
       .from('votes')
-      .insert({
-        room_code: code.toLowerCase(),
-        round_number: roundNumber,
-        voter_nickname: myNickname,
-        voted_for: votedFor
-      })
+      .insert(voteData)
+      .select()
+    
+    console.log("Insert result data:", data);
+    console.log("Insert result error:", error);
     
     if (error) {
       console.error("Vote insertion error:", error)
@@ -231,11 +240,18 @@ function Game() {
   const endVoting = async () => {
     setShowResults(true)
     
+    console.log("=== END VOTING - CALCULATING RESULTS ===");
+    console.log("Total votes array:", votes);
+    console.log("Total votes count:", votes.length);
+    console.log("Players in room:", players);
+    
     // Calculate winner
     const voteCounts = {}
     votes.forEach(vote => {
       voteCounts[vote.voted_for] = (voteCounts[vote.voted_for] || 0) + 1
     })
+    
+    console.log("Vote counts:", voteCounts);
     
     let maxVotes = 0
     let roundWinner = null
@@ -245,6 +261,8 @@ function Game() {
         roundWinner = nickname
       }
     }
+    
+    console.log("Winner:", roundWinner, "with", maxVotes, "votes");
     
     setWinner(roundWinner)
     
