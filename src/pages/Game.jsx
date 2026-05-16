@@ -174,11 +174,15 @@ function Game() {
     // Count unique voters to prevent duplicate votes from triggering early
     const uniqueVoters = new Set(votes.map(v => v.voter_nickname))
     console.log("Unique voters count:", uniqueVoters.size);
+    console.log("Unique voters:", Array.from(uniqueVoters));
+    console.log("Player nicknames:", players.map(p => p.nickname));
     
     if (players.length > 0 && uniqueVoters.size >= players.length && !showResults && !isEndingVoting) {
-      console.log("All players have voted! Ending voting period.");
+      console.log("✅ All players have voted! Ending voting period.");
       setIsEndingVoting(true)
       endVoting()
+    } else {
+      console.log("❌ Not all players have voted yet. Waiting for more votes.");
     }
   }, [votes, players, showResults, roundNumber, isEndingVoting])
 
