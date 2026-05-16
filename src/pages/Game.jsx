@@ -472,8 +472,12 @@ function Game() {
     setWinner(roundWinners.length === 1 ? roundWinners[0] : null)
     setWinners(roundWinners)
     
+    console.log("=== ABOUT TO UPDATE DRINK COUNTS ===", { roundWinners, resultsVotes })
+    
     // Update all winners' drink count by the number of votes they received
+    console.log("=== CHECKING IF ROUND WINNERS EXIST ===", roundWinners.length > 0)
     if (roundWinners.length > 0) {
+      console.log("=== ROUND WINNERS FOUND, UPDATING DRINK COUNTS ===")
       // Get vote counts for this round
       const voteCounts = {}
       resultsVotes.forEach(vote => {
@@ -481,6 +485,7 @@ function Game() {
       })
 
       for (const winnerNickname of roundWinners) {
+        console.log("=== PROCESSING WINNER ===", winnerNickname)
         // First get current drink count
         const { data: playerData } = await supabase
           .from('players')
