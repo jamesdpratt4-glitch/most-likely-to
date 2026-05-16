@@ -116,10 +116,6 @@ function Game() {
               fetchPlayers() // Refresh players data to get latest drink counts
             }
           }
-          // Sync show_detailed_votes state
-          if (payload.new.show_detailed_votes !== payload.old.show_detailed_votes) {
-            setShowDetailedVotes(payload.new.show_detailed_votes || false)
-          }
           // If room status changes to 'waiting', redirect to lobby
           if (payload.new.status === 'waiting') {
             window.location.href = isHost ? `/host/${code}` : `/lobby/${code}`
@@ -143,6 +139,7 @@ function Game() {
             setWinner(null)
             setWinners([])
             setIsEndingVoting(false)
+            setShowDetailedVotes(false) // Reset reveal votes for new round
             processedRoundRef.current = null // Reset processed round for new round
           }
         }
@@ -293,7 +290,6 @@ function Game() {
     
     if (data) {
       setRoom(data)
-      setShowDetailedVotes(data.show_detailed_votes || false)
       // Calculate round number from existing votes
       const { data: existingVotes } = await supabase
         .from('votes')
@@ -794,17 +790,11 @@ function Game() {
             </button>
             <button 
               className="btn btn-secondary btn-large" 
-              onClick={async () => {
-                const newState = !showDetailedVotes
-                setShowDetailedVotes(newState)
-                await supabase
-                  .from('rooms')
-                  .update({ show_detailed_votes: newState })
-                  .eq('code', code.toLowerCase())
-              }}
+              onClick={() => setShowDetailedVotes(true)}
+              disabled={showDetailedVotes}
               style={{ backgroundColor: '#ff6b6b' }}
             >
-              {showDetailedVotes ? 'Hide Votes' : 'Reveal Votes'}
+              {showDetailedVotes ? 'Votes Revealed' : 'Reveal Votes'}
             </button>
             <button 
               className="btn btn-secondary btn-large" 
