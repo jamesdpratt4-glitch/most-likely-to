@@ -153,7 +153,25 @@ function Game() {
       )
       .subscribe()
 
-    // Poll players every 3 seconds instead of subscription (to avoid race condition)
+    // Subscribe to players changes to sync drink_count updates
+    const playersChannel = supabase
+      .channel(`players:${code.toLowerCase()}:game`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'players',
+          filter: `room_code=eq.${code.toLowerCase()}`
+        },
+        (payload) => {
+          console.log("=== PLAYERS SUBSCRIPTION TRIGGERED ===", payload)
+          fetchPlayers()
+        }
+      )
+      .subscribe()
+
+    // Poll players every 3 seconds as backup
     const playersInterval = setInterval(() => {
       fetchPlayers()
     }, 3000)
@@ -174,6 +192,7 @@ function Game() {
     return () => {
       supabase.removeChannel(roomChannel)
       supabase.removeChannel(votesChannel)
+      supabase.removeChannel(playersChannel)
       clearInterval(playersInterval)
       clearInterval(roomStatusInterval)
     }
