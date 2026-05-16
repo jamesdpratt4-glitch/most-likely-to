@@ -674,7 +674,7 @@ function Game() {
   }
 
   if (!room || room.status === 'waiting') {
-    return <div className="min-h-screen flex flex-col items-center justify-center bg-[#0f0f0f] text-white p-5">Loading...</div>
+    return <div className="min-h-screen flex flex-col items-center justify-center bg-slate-950 text-white p-5">Loading...</div>
   }
 
   if (showSummary) {
@@ -690,49 +690,51 @@ function Game() {
     })
 
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-[#0f0f0f] text-white p-5">
-        <h2 className="text-4xl font-bold mb-2 text-[#667eea]">Round {roundNumber} Summary</h2>
-        <p className="mb-8 text-gray-400">Total drinks after {roundNumber} rounds</p>
-        
-        <div className="w-full max-w-2xl space-y-4">
-          {sortedPlayers.map(player => (
-            <div key={player.nickname} className="w-full">
-              <div className="flex justify-between items-center mb-2">
-                <span className="flex items-center">
-                  {player.emoji && <span className="mr-2">{player.emoji}</span>}
-                  {player.nickname}
-                </span>
-                <span>{player.drink_count || 0} drinks</span>
+      <div className="min-h-screen flex flex-col items-center justify-center bg-slate-950 text-white p-5">
+        <div className="container mx-auto px-4 max-w-2xl text-center">
+          <h2 className="text-4xl font-bold mb-2 text-white tracking-tight">Round {roundNumber} Summary</h2>
+          <p className="mb-8 text-slate-300">Total drinks after {roundNumber} rounds</p>
+          
+          <div className="w-full space-y-4">
+            {sortedPlayers.map(player => (
+              <div key={player.nickname} className="w-full">
+                <div className="flex justify-between items-center mb-2">
+                  <span className="flex items-center font-medium text-slate-200">
+                    {player.emoji && <span className="mr-2 text-2xl">{player.emoji}</span>}
+                    {player.nickname}
+                  </span>
+                  <span className="font-semibold text-white">{player.drink_count || 0} drinks</span>
+                </div>
+                <div 
+                  className="h-2 bg-zinc-800 rounded-full overflow-hidden"
+                  style={{ width: `${sortedPlayers.length > 0 ? ((player.drink_count || 0) / sortedPlayers[0].drink_count) * 100 : 0}%` }}
+                >
+                  <div className="h-full bg-indigo-500 transition-all duration-300 ease-in-out" style={{ width: '100%' }} />
+                </div>
               </div>
-              <div 
-                className="h-2 bg-[#1a1a2e] rounded-full overflow-hidden"
-                style={{ width: `${sortedPlayers.length > 0 ? ((player.drink_count || 0) / sortedPlayers[0].drink_count) * 100 : 0}%` }}
+            ))}
+          </div>
+          
+          {isHost && (
+            <div className="flex gap-4 justify-center mt-8 flex-wrap">
+              <button className="text-lg font-semibold py-4 px-8 rounded-xl border-none cursor-pointer transition-all duration-300 ease-in-out hover:bg-indigo-600 active:scale-95 min-w-[200px] bg-indigo-500 text-white shadow-lg shadow-indigo-500/20" onClick={handleContinueFromSummary}>
+                Next Round
+              </button>
+              <button 
+                className="text-lg font-semibold py-4 px-8 rounded-xl border-none cursor-pointer transition-all duration-300 ease-in-out hover:bg-red-500 active:scale-95 min-w-[200px] bg-red-600 text-white shadow-lg shadow-red-600/20"
+                onClick={handleEndGame}
               >
-                <div className="h-full bg-[#667eea]" style={{ width: '100%' }} />
-              </div>
+                End Game
+              </button>
             </div>
-          ))}
-        </div>
-        
-        {isHost && (
-          <div className="flex gap-4 justify-center mt-8 flex-wrap">
-            <button className="text-xl font-semibold py-4 px-10 rounded-lg border-none cursor-pointer transition-transform hover:-translate-y-0.5 hover:shadow-lg min-w-[200px] bg-[#667eea] text-white" onClick={handleContinueFromSummary}>
-              Next Round
-            </button>
-            <button 
-              className="text-xl font-semibold py-4 px-10 rounded-lg border-none cursor-pointer transition-transform hover:-translate-y-0.5 hover:shadow-lg min-w-[200px] bg-[#ff4444] text-white"
-              onClick={handleEndGame}
-            >
-              End Game
-            </button>
-          </div>
-        )}
+          )}
 
-        {!isHost && (
-          <div className="mt-8 text-gray-400 text-sm">
-            Waiting for host to start next round...
-          </div>
-        )}
+          {!isHost && (
+            <div className="mt-8 text-slate-400 text-sm font-medium">
+              Waiting for host to start next round...
+            </div>
+          )}
+        </div>
       </div>
     )
   }
@@ -748,112 +750,115 @@ function Game() {
     
     const maxVotes = Math.max(...Object.values(voteCounts), 0)
 
-    return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-[#0f0f0f] text-white p-5">
-        <h2 className="text-4xl font-bold mb-8 text-[#667eea]">Results</h2>
-        
-        <div className="w-full max-w-2xl space-y-4">
-          {players.map(player => {
-            const count = voteCounts[player.nickname] || 0
-            const percentage = activePlayers.length > 0 ? (count / activePlayers.length) * 100 : 0
-            const isWinner = winners.includes(player.nickname)
-            const isRemoved = removedPlayers.includes(player.nickname)
-            const votersForPlayer = resultsVotes.filter(v => v.voted_for === player.nickname)
-            
-            return (
-              <div key={player.nickname} className={`w-full ${isWinner ? 'ring-2 ring-[#667eea]' : ''} ${isRemoved ? 'opacity-50' : ''}`}>
-                <div className="flex justify-between items-center mb-2">
-                  <span className="flex items-center">
-                    {player.emoji && <span className="mr-2">{player.emoji}</span>}
-                    {player.nickname}{isRemoved ? ' (removed)' : ''}
-                  </span>
-                  <span>{count} votes</span>
-                </div>
-                <div 
-                  className="h-2 bg-[#1a1a2e] rounded-full overflow-hidden"
-                  style={{ width: `${percentage}%` }}
-                >
-                  <div className={`h-full ${isWinner ? 'bg-[#667eea]' : 'bg-[#ff6b6b]'}`} style={{ width: '100%' }} />
-                </div>
-                {showDetailedVotes && votersForPlayer.length > 0 && (
-                  <div className="mt-2 text-sm text-gray-400">
-                    Voted by: {votersForPlayer.map(v => v.voter_nickname).join(', ')}
-                  </div>
-                )}
-              </div>
-            )
-          })}
-        </div>
-        
-        {winners.length > 0 && (
-          <div className="mt-8 text-2xl font-bold">
-            {winners.length === 1 ? (
-              <h3>{winners[0]} drinks! 🍺</h3>
-            ) : (
-              <h3>{winners.join(' & ')} drink! 🍺</h3>
-            )}
-          </div>
-        )}
-        
-        {isHost && (
-          <div className="flex gap-4 justify-center flex-wrap">
-            <button className="text-xl font-semibold py-4 px-10 rounded-lg border-none cursor-pointer transition-transform hover:-translate-y-0.5 hover:shadow-lg min-w-[200px] bg-[#667eea] text-white" onClick={handleNextRound}>
-              Next Round
-            </button>
-            <button 
-              className="text-xl font-semibold py-4 px-10 rounded-lg border-none cursor-pointer transition-transform hover:-translate-y-0.5 hover:shadow-lg min-w-[200px] bg-[#667eea] text-white"
-              onClick={handleShowSummary}
-            >
-              Drinks So Far
-            </button>
-            <button 
-              className="text-xl font-semibold py-4 px-10 rounded-lg border-none cursor-pointer transition-transform hover:-translate-y-0.5 hover:shadow-lg min-w-[200px] bg-[#ff6b6b] text-white"
-              onClick={async () => {
-                setShowDetailedVotes(true)
-                // Broadcast reveal votes event to all clients
-                await supabase
-                  .channel(`reveal_votes:${code.toLowerCase()}`)
-                  .send({
-                    type: 'broadcast',
-                    event: 'reveal_votes',
-                    payload: { roundNumber }
-                  })
-              }}
-              disabled={showDetailedVotes}
-            >
-              {showDetailedVotes ? 'Votes Revealed' : 'Reveal Votes'}
-            </button>
-            <button 
-              className="text-xl font-semibold py-4 px-10 rounded-lg border-none cursor-pointer transition-transform hover:-translate-y-0.5 hover:shadow-lg min-w-[200px] bg-[#ff4444] text-white"
-              onClick={handleEndGame}
-            >
-              End Game
-            </button>
-          </div>
-        )}
+    const sortedPlayers = [...players].sort((a, b) => (voteCounts[b.nickname] || 0) - (voteCounts[a.nickname] || 0))
 
-        {isHost && (
-          <div className="mt-8 w-full max-w-md">
-            <h3 className="text-xl font-medium mb-4">Players ({activePlayers.length})</h3>
-            <ul className="list-none p-0 space-y-2">
-              {activePlayers.map((player, index) => (
-                <li key={index} className="flex items-center justify-between p-3 bg-[#1a1a2e] rounded-lg">
-                  <span className="flex items-center">
-                    {player.emoji && <span className="mr-2">{player.emoji}</span>}
-                    {player.nickname}
-                  </span>
-                  <button 
-                    className="ml-2 text-sm text-[#ff6b6b] bg-none border-none cursor-pointer hover:text-[#ff4444]"
-                    onClick={() => handleRemovePlayer(player.nickname)}
-                    title="Remove player"
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-slate-950 text-white p-5">
+        <div className="container mx-auto px-4 max-w-2xl text-center">
+          <h2 className="text-4xl font-bold mb-8 text-white tracking-tight">Results</h2>
+          
+          <div className="w-full space-y-4">
+            {sortedPlayers.map(player => {
+              const count = voteCounts[player.nickname] || 0
+              const percentage = activePlayers.length > 0 ? (count / activePlayers.length) * 100 : 0
+              const isWinner = winners.includes(player.nickname)
+              const isRemoved = removedPlayers.includes(player.nickname)
+              const votersForPlayer = resultsVotes.filter(v => v.voted_for === player.nickname)
+              
+              return (
+                <div key={player.nickname} className={`w-full p-4 bg-zinc-900/50 rounded-xl border ${isWinner ? 'border-indigo-500 ring-2 ring-indigo-500/50' : 'border-slate-800'} ${isRemoved ? 'opacity-50' : ''} transition-all duration-300 ease-in-out`}>
+                  <div className="flex justify-between items-center mb-2">
+                    <span className="flex items-center font-medium text-slate-200">
+                      {player.emoji && <span className="mr-2 text-2xl">{player.emoji}</span>}
+                      {player.nickname}{isRemoved ? ' (removed)' : ''}
+                    </span>
+                    <span className="font-semibold text-white">{count} votes</span>
+                  </div>
+                  <div 
+                    className="h-2 bg-zinc-800 rounded-full overflow-hidden"
+                    style={{ width: `${percentage}%` }}
                   >
-                    ✕
-                  </button>
-                </li>
-              ))}
-            </ul>
+                    <div className={`h-full transition-all duration-300 ease-in-out ${isWinner ? 'bg-indigo-500' : 'bg-slate-600'}`} style={{ width: '100%' }} />
+                  </div>
+                  {showDetailedVotes && votersForPlayer.length > 0 && (
+                    <div className="mt-2 text-sm text-slate-400">
+                      Voted by: {votersForPlayer.map(v => v.voter_nickname).join(', ')}
+                    </div>
+                  )}
+                </div>
+              )
+            })}
           </div>
-        )}
+          
+          {winners.length > 0 && (
+            <div className="mt-8 text-2xl font-bold text-white">
+              {winners.length === 1 ? (
+                <h3>{winners[0]} drinks! 🍺</h3>
+              ) : (
+                <h3>{winners.join(' & ')} drink! 🍺</h3>
+              )}
+            </div>
+          )}
+          
+          {isHost && (
+            <div className="flex gap-4 justify-center flex-wrap mt-8">
+              <button className="text-lg font-semibold py-4 px-8 rounded-xl border-none cursor-pointer transition-all duration-300 ease-in-out hover:bg-indigo-600 active:scale-95 min-w-[200px] bg-indigo-500 text-white shadow-lg shadow-indigo-500/20" onClick={handleNextRound}>
+                Next Round
+              </button>
+              <button 
+                className="text-lg font-semibold py-4 px-8 rounded-xl border-none cursor-pointer transition-all duration-300 ease-in-out hover:bg-indigo-600 active:scale-95 min-w-[200px] bg-indigo-500 text-white shadow-lg shadow-indigo-500/20"
+                onClick={handleShowSummary}
+              >
+                Drinks So Far
+              </button>
+              <button 
+                className="text-lg font-semibold py-4 px-8 rounded-xl border-none cursor-pointer transition-all duration-300 ease-in-out hover:bg-slate-700 active:scale-95 min-w-[200px] bg-slate-600 text-white"
+                onClick={async () => {
+                  setShowDetailedVotes(true)
+                  await supabase
+                    .channel(`reveal_votes:${code.toLowerCase()}`)
+                    .send({
+                      type: 'broadcast',
+                      event: 'reveal_votes',
+                      payload: { roundNumber }
+                    })
+                }}
+                disabled={showDetailedVotes}
+              >
+                {showDetailedVotes ? 'Votes Revealed' : 'Reveal Votes'}
+              </button>
+              <button 
+                className="text-lg font-semibold py-4 px-8 rounded-xl border-none cursor-pointer transition-all duration-300 ease-in-out hover:bg-red-500 active:scale-95 min-w-[200px] bg-red-600 text-white shadow-lg shadow-red-600/20"
+                onClick={handleEndGame}
+              >
+                End Game
+              </button>
+            </div>
+          )}
+
+          {isHost && (
+            <div className="mt-8 w-full max-w-md mx-auto">
+              <h3 className="text-xl font-semibold mb-4 text-white">Players ({activePlayers.length})</h3>
+              <ul className="list-none p-0 space-y-3">
+                {activePlayers.map((player, index) => (
+                  <li key={index} className="flex items-center justify-between p-4 bg-zinc-900/50 rounded-xl border border-slate-800 transition-all duration-300 ease-in-out hover:bg-zinc-800/50">
+                    <span className="flex items-center font-medium text-slate-200">
+                      {player.emoji && <span className="mr-2 text-2xl">{player.emoji}</span>}
+                      {player.nickname}
+                    </span>
+                    <button 
+                      className="ml-2 text-sm text-red-400 bg-none border-none cursor-pointer hover:text-red-300 transition-all duration-300 ease-in-out"
+                      onClick={() => handleRemovePlayer(player.nickname)}
+                      title="Remove player"
+                    >
+                      ✕
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </div>
       </div>
     )
   }
@@ -861,44 +866,45 @@ function Game() {
   const votingPlayers = players
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-[#0f0f0f] text-white p-5">
-      <div className="text-lg mb-2">Time left: {timeLeft}s</div>
-      
-      {/* Live vote counter */}
-      <div className="text-sm text-gray-400 mb-2">
-        {new Set(votes.map(v => v.voter_nickname)).size} / {players.length} votes cast
-      </div>
-      
-      {/* Debug info */}
-      <div className="text-xs text-gray-600 mb-2">
-        Players: {players.length} | Votes: {votes.length} | Round: {roundNumber}
-      </div>
-      
-      <div className="w-full max-w-2xl bg-[#1a1a2e] p-8 rounded-lg mb-8">
-        <h2 className="text-2xl font-bold text-center">{room.current_question}</h2>
-      </div>
-      
-      <div className="w-full max-w-2xl">
-        <h3 className="text-xl font-medium mb-4">Vote for:</h3>
-        <div className="grid grid-cols-2 gap-4" style={hasVoted ? { opacity: 0.5, pointerEvents: 'none' } : {}}>
-          {votingPlayers.map(player => {
-            const isSelf = player.nickname === myNickname
-            return (
-              <button
-                key={player.nickname}
-                className={`text-lg font-semibold py-3 px-6 rounded-lg border-none cursor-pointer transition-transform hover:-translate-y-0.5 hover:shadow-lg ${isSelf ? 'opacity-50 cursor-not-allowed' : ''}`}
-                onClick={() => handleVote(player.nickname)}
-                disabled={hasVoted || isSelf}
-                style={{ backgroundColor: isSelf ? '#333' : '#667eea' }}
-              >
-                {player.nickname} {isSelf && '(You)'}
-              </button>
-            )
-          })}
+    <div className="min-h-screen flex flex-col items-center justify-center bg-slate-950 text-white p-5">
+      <div className="container mx-auto px-4 max-w-2xl text-center">
+        <div className="text-lg mb-2 font-semibold text-white">Time left: {timeLeft}s</div>
+        
+        {/* Live vote counter */}
+        <div className="text-sm text-slate-400 mb-2">
+          {new Set(votes.map(v => v.voter_nickname)).size} / {players.length} votes cast
         </div>
+        
+        {/* Debug info */}
+        <div className="text-xs text-zinc-600 mb-2">
+          Players: {players.length} | Votes: {votes.length} | Round: {roundNumber}
+        </div>
+        
+        <div className="w-full bg-zinc-900/50 p-8 rounded-2xl border border-slate-800 mb-8 shadow-xl">
+          <h2 className="text-2xl font-bold text-center text-white">{room.current_question}</h2>
+        </div>
+        
+        <div className="w-full">
+          <h3 className="text-xl font-semibold mb-4 text-white">Vote for:</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4" style={hasVoted ? { opacity: 0.5, pointerEvents: 'none' } : {}}>
+            {votingPlayers.map(player => {
+              const isSelf = player.nickname === myNickname
+              return (
+                <button
+                  key={player.nickname}
+                  className={`text-lg font-semibold py-4 px-6 rounded-xl border-none cursor-pointer transition-all duration-300 ease-in-out hover:bg-indigo-600 active:scale-95 shadow-lg ${isSelf ? 'opacity-50 cursor-not-allowed bg-zinc-700 text-slate-400' : 'bg-indigo-500 text-white shadow-indigo-500/20'}`}
+                  onClick={() => handleVote(player.nickname)}
+                  disabled={hasVoted || isSelf}
+                >
+                  {player.nickname} {isSelf && '(You)'}
+                </button>
+              )
+            })}
+          </div>
+        </div>
+        
+        {hasVoted && <p className="mt-4 text-slate-400 font-medium">Vote submitted! Waiting for other players...</p>}
       </div>
-      
-      {hasVoted && <p className="mt-4 text-gray-400">Vote submitted! Waiting for other players...</p>}
     </div>
   )
 }

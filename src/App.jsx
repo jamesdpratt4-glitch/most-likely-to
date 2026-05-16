@@ -8,7 +8,7 @@ import Game from './pages/Game'
 import GameOver from './pages/GameOver'
 import JoinRoom from './pages/JoinRoom'
 
-const APP_VERSION = "1.0.93"
+const APP_VERSION = "1.0.94"
 
 function Home() {
   const navigate = useNavigate()
@@ -168,103 +168,122 @@ function Home() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-[#0f0f0f] text-white p-5">
-      <div className="fixed top-2.5 left-1/2 -translate-x-1/2 opacity-70 text-base text-black z-50 font-bold bg-white/90 px-3 py-1 rounded shadow">
+    <div className="min-h-screen flex flex-col items-center justify-center bg-slate-950 text-white p-5">
+      <div className="fixed top-4 left-1/2 -translate-x-1/2 z-50 font-semibold text-zinc-500 bg-zinc-900/70 backdrop-blur-md px-4 py-2 rounded-xl border border-slate-800">
         v{APP_VERSION}
       </div>
-      <h1 className="text-6xl font-bold mb-6 text-[#667eea]">Most Likely To</h1>
-      <p className="text-xl text-gray-400 mb-12">A multiplayer party game</p>
+      <div className="container mx-auto px-4 max-w-2xl text-center">
+        <h1 className="text-6xl font-bold mb-4 text-white tracking-tight">Most Likely To</h1>
+        <p className="text-xl text-slate-300 mb-12">A multiplayer party game</p>
       
-      {!showJoinForm && !showCreateForm ? (
-        <div className="flex gap-6 flex-wrap justify-center">
-          <button className="text-xl font-semibold py-4 px-10 rounded-lg border-none cursor-pointer transition-transform hover:-translate-y-0.5 hover:shadow-lg min-w-[200px] bg-[#667eea] text-white" onClick={() => setShowCreateForm(true)}>Create Room</button>
-          <button className="text-xl font-semibold py-4 px-10 rounded-lg border-none cursor-pointer transition-transform hover:-translate-y-0.5 hover:shadow-lg min-w-[200px] bg-[#ff6b6b] text-white" onClick={() => setShowJoinForm(true)}>Join Room</button>
-        </div>
-      ) : showCreateForm ? (
-        <form className="flex flex-col items-center gap-4" onSubmit={(e) => { e.preventDefault(); handleCreateRoom(); }}>
-          <input
-            type="text"
-            placeholder="Your Nickname"
-            value={hostNickname}
-            onChange={(e) => setHostNickname(e.target.value)}
-            className="w-full max-w-md px-4 py-3 rounded-lg border border-gray-600 bg-[#1a1a2e] text-white focus:outline-none focus:ring-2 focus:ring-[#667eea]"
-          />
-          {error && <p className="text-[#ff6b6b]">{error}</p>}
-          <div className="flex gap-4">
-            <button type="submit" className="text-xl font-semibold py-4 px-10 rounded-lg border-none cursor-pointer transition-transform hover:-translate-y-0.5 hover:shadow-lg min-w-[200px] bg-[#667eea] text-white">Create</button>
-            <button type="button" className="text-xl font-semibold py-4 px-10 rounded-lg border-none cursor-pointer transition-transform hover:-translate-y-0.5 hover:shadow-lg min-w-[200px] bg-[#ff6b6b] text-white" onClick={() => { setShowCreateForm(false); setError(''); }}>Cancel</button>
+        {!showJoinForm && !showCreateForm ? (
+          <div className="flex gap-4 flex-wrap justify-center">
+            <button 
+              className="text-lg font-semibold py-4 px-8 rounded-xl border-none cursor-pointer transition-all duration-300 ease-in-out hover:bg-indigo-600 active:scale-95 min-w-[200px] bg-indigo-500 text-white shadow-lg shadow-indigo-500/20"
+              onClick={() => setShowCreateForm(true)}
+            >
+              Create Room
+            </button>
+            <button 
+              className="text-lg font-semibold py-4 px-8 rounded-xl border-none cursor-pointer transition-all duration-300 ease-in-out hover:bg-indigo-600 active:scale-95 min-w-[200px] bg-indigo-500 text-white shadow-lg shadow-indigo-500/20"
+              onClick={() => setShowJoinForm(true)}
+            >
+              Join Room
+            </button>
           </div>
-        </form>
-      ) : (
-        <form className="flex flex-col items-center gap-4" onSubmit={handleJoinRoom}>
-          <h2 className="text-2xl font-medium text-white mb-2">Join Room</h2>
-          <input
-            type="text"
-            placeholder="Room Code"
-            value={roomCode}
-            onChange={(e) => setRoomCode(e.target.value)}
-            className="w-full max-w-md px-4 py-3 rounded-lg border border-gray-600 bg-[#1a1a2e] text-white focus:outline-none focus:ring-2 focus:ring-[#667eea]"
-            maxLength={4}
-          />
-          <input
-            type="text"
-            placeholder="Your Nickname"
-            value={nickname}
-            onChange={(e) => setNickname(e.target.value)}
-            className="w-full max-w-md px-4 py-3 rounded-lg border border-gray-600 bg-[#1a1a2e] text-white focus:outline-none focus:ring-2 focus:ring-[#667eea]"
-          />
-          {error && <p className="text-[#ff6b6b]">{error}</p>}
-          <div className="flex gap-4">
-            <button type="submit" className="text-xl font-semibold py-4 px-10 rounded-lg border-none cursor-pointer transition-transform hover:-translate-y-0.5 hover:shadow-lg min-w-[200px] bg-[#667eea] text-white">Join</button>
-            <button type="button" className="text-xl font-semibold py-4 px-10 rounded-lg border-none cursor-pointer transition-transform hover:-translate-y-0.5 hover:shadow-lg min-w-[200px] bg-[#ff6b6b] text-white" onClick={() => { setShowJoinForm(false); setError(''); }}>Cancel</button>
-          </div>
-        </form>
-      )}
+        ) : showCreateForm ? (
+          <form className="flex flex-col items-center gap-6 w-full max-w-md mx-auto" onSubmit={(e) => { e.preventDefault(); handleCreateRoom(); }}>
+            <div className="w-full">
+              <input
+                type="text"
+                placeholder="Your Nickname"
+                value={hostNickname}
+                onChange={(e) => setHostNickname(e.target.value)}
+                className="w-full px-4 py-3 rounded-xl border border-slate-800 bg-zinc-900/50 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all duration-300 ease-in-out"
+              />
+            </div>
+            {error && <p className="text-red-400 font-medium">{error}</p>}
+            <div className="flex gap-4 w-full">
+              <button type="submit" className="flex-1 text-lg font-semibold py-4 px-8 rounded-xl border-none cursor-pointer transition-all duration-300 ease-in-out hover:bg-indigo-600 active:scale-95 bg-indigo-500 text-white shadow-lg shadow-indigo-500/20">Create</button>
+              <button type="button" className="flex-1 text-lg font-semibold py-4 px-8 rounded-xl border-none cursor-pointer transition-all duration-300 ease-in-out hover:bg-slate-700 active:scale-95 bg-slate-600 text-white" onClick={() => { setShowCreateForm(false); setError(''); }}>Cancel</button>
+            </div>
+          </form>
+        ) : (
+          <form className="flex flex-col items-center gap-6 w-full max-w-md mx-auto" onSubmit={handleJoinRoom}>
+            <h2 className="text-2xl font-semibold text-white mb-2">Join Room</h2>
+            <div className="w-full">
+              <input
+                type="text"
+                placeholder="Room Code"
+                value={roomCode}
+                onChange={(e) => setRoomCode(e.target.value)}
+                className="w-full px-4 py-3 rounded-xl border border-slate-800 bg-zinc-900/50 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all duration-300 ease-in-out"
+                maxLength={4}
+              />
+            </div>
+            <div className="w-full">
+              <input
+                type="text"
+                placeholder="Your Nickname"
+                value={nickname}
+                onChange={(e) => setNickname(e.target.value)}
+                className="w-full px-4 py-3 rounded-xl border border-slate-800 bg-zinc-900/50 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all duration-300 ease-in-out"
+              />
+            </div>
+            {error && <p className="text-red-400 font-medium">{error}</p>}
+            <div className="flex gap-4 w-full">
+              <button type="submit" className="flex-1 text-lg font-semibold py-4 px-8 rounded-xl border-none cursor-pointer transition-all duration-300 ease-in-out hover:bg-indigo-600 active:scale-95 bg-indigo-500 text-white shadow-lg shadow-indigo-500/20">Join</button>
+              <button type="button" className="flex-1 text-lg font-semibold py-4 px-8 rounded-xl border-none cursor-pointer transition-all duration-300 ease-in-out hover:bg-slate-700 active:scale-95 bg-slate-600 text-white" onClick={() => { setShowJoinForm(false); setError(''); }}>Cancel</button>
+            </div>
+          </form>
+        )}
+      </div>
       
       <button 
-        className="fixed bottom-2.5 left-2.5 opacity-30 text-xs text-gray-600 z-50 bg-none border-none cursor-pointer"
+        className="fixed bottom-4 left-4 opacity-40 text-xs text-zinc-500 z-50 bg-none border-none cursor-pointer hover:opacity-60 transition-all duration-300 ease-in-out"
         onClick={handleDevClick}
       >
         DEV
       </button>
       
       {showDevModal && (
-        <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-[#1a1a1a] p-8 rounded-lg z-[10001] min-w-[400px] max-h-[80vh] overflow-auto">
-          <h2 className="text-white mb-4">Dev Tools</h2>
-          <h3 className="text-gray-400 mb-2">Active Rooms ({activeRooms.length})</h3>
-          <div className="mb-4 max-h-[200px] overflow-auto">
-            {activeRooms.length === 0 ? (
-              <p className="text-gray-600">No active rooms</p>
-            ) : (
-              <ul className="text-gray-400 list-none p-0">
-                {activeRooms.map(room => (
-                  <li key={room.code} className="mb-2 p-2 bg-[#2a2a2a] rounded">
-                    <strong>Code:</strong> {room.code} | <strong>Status:</strong> {room.status}
-                  </li>
-                ))}
-              </ul>
-            )}
-          </div>
-          <button 
-            className="text-xl font-semibold py-4 px-10 rounded-lg border-none cursor-pointer transition-transform hover:-translate-y-0.5 hover:shadow-lg min-w-[200px] bg-[#ff4444] text-white mr-2"
-            onClick={killAllRooms}
-          >
-            Kill All Rooms
-          </button>
-          <button 
-            className="text-xl font-semibold py-4 px-10 rounded-lg border-none cursor-pointer transition-transform hover:-translate-y-0.5 hover:shadow-lg min-w-[200px] bg-[#ff6b6b] text-white"
+        <>
+          <div 
+            className="fixed top-0 left-0 right-0 bottom-0 bg-black/60 backdrop-blur-sm z-[10000]"
             onClick={() => setShowDevModal(false)}
-          >
-            Close
-          </button>
-        </div>
-      )}
-      
-      {showDevModal && (
-        <div 
-          className="fixed top-0 left-0 right-0 bottom-0 bg-black/70 z-[10000]"
-          onClick={() => setShowDevModal(false)}
-        />
+          />
+          <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-zinc-900/90 backdrop-blur-md p-8 rounded-2xl z-[10001] min-w-[400px] max-h-[80vh] overflow-auto border border-slate-800 shadow-2xl">
+            <h2 className="text-white mb-4 text-xl font-semibold">Dev Tools</h2>
+            <h3 className="text-slate-400 mb-2">Active Rooms ({activeRooms.length})</h3>
+            <div className="mb-6 max-h-[200px] overflow-auto">
+              {activeRooms.length === 0 ? (
+                <p className="text-zinc-500">No active rooms</p>
+              ) : (
+                <ul className="text-slate-400 list-none p-0 space-y-2">
+                  {activeRooms.map(room => (
+                    <li key={room.code} className="p-3 bg-zinc-800/50 rounded-xl border border-slate-800">
+                      <span className="font-medium text-white">Code:</span> {room.code} | <span className="font-medium text-white">Status:</span> {room.status}
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+            <div className="flex gap-4">
+              <button 
+                className="flex-1 text-lg font-semibold py-4 px-8 rounded-xl border-none cursor-pointer transition-all duration-300 ease-in-out hover:bg-red-500 active:scale-95 bg-red-600 text-white"
+                onClick={killAllRooms}
+              >
+                Kill All Rooms
+              </button>
+              <button 
+                className="flex-1 text-lg font-semibold py-4 px-8 rounded-xl border-none cursor-pointer transition-all duration-300 ease-in-out hover:bg-slate-700 active:scale-95 bg-slate-600 text-white"
+                onClick={() => setShowDevModal(false)}
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </>
       )}
     </div>
   )
