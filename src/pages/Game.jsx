@@ -303,7 +303,33 @@ function Game() {
     if (error) {
       console.error("Vote insertion error:", error)
       setHasVoted(false) // Re-enable button if error occurs
+      return
     }
+
+    // After successful vote, manually check if all players have voted
+    console.log("=== MANUAL VOTE COMPLETION CHECK AFTER VOTE ===");
+    await fetchVotes()
+    
+    // Small delay to ensure votes state is updated
+    setTimeout(async () => {
+      const { data: allPlayers } = await supabase
+        .from('players')
+        .select('nickname')
+        .eq('room_code', code.toLowerCase())
+      
+      if (allPlayers) {
+        const uniqueVoters = new Set(votes.map(v => v.voter_nickname))
+        console.log("Players count:", allPlayers.length);
+        console.log("Unique voters count:", uniqueVoters.size);
+        console.log("Votes array:", votes);
+        
+        if (allPlayers.length > 0 && uniqueVoters.size >= allPlayers.length && !showResults && !isEndingVoting) {
+          console.log("✅ MANUAL CHECK: All players have voted! Ending voting period.");
+          setIsEndingVoting(true)
+          endVoting()
+        }
+      }
+    }, 500)
   }
 
   const endVoting = async () => {
