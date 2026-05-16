@@ -10,6 +10,7 @@ function Game() {
   const [room, setRoom] = useState(null)
   const [players, setPlayers] = useState([])
   const [votes, setVotes] = useState([])
+  const [resultsVotes, setResultsVotes] = useState([])
   const [hasVoted, setHasVoted] = useState(false)
   const [timeLeft, setTimeLeft] = useState(15)
   const [showResults, setShowResults] = useState(false)
@@ -90,6 +91,7 @@ function Game() {
               setHasVoted(false)
               setTimeLeft(15)
               setVotes([])
+              setResultsVotes([])
               setWinner(null)
               setWinners([])
               setRoundNumber(prev => prev + 1)
@@ -357,6 +359,7 @@ function Game() {
     // Update local votes state with fresh data
     if (freshVotes) {
       setVotes(freshVotes)
+      setResultsVotes(freshVotes)
     }
     
     setShowResults(true)
@@ -416,6 +419,7 @@ function Game() {
     setHasVoted(false)
     setTimeLeft(15)
     setVotes([])
+    setResultsVotes([])
     setWinner(null)
     setWinners([])
     setRoundNumber(newRoundNumber)
@@ -428,7 +432,7 @@ function Game() {
 
   if (showResults) {
     const voteCounts = {}
-    votes.forEach(vote => {
+    resultsVotes.forEach(vote => {
       voteCounts[vote.voted_for] = (voteCounts[vote.voted_for] || 0) + 1
     })
     
