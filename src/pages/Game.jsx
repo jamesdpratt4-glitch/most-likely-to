@@ -14,6 +14,7 @@ function Game() {
   const [hasVoted, setHasVoted] = useState(false)
   const [timeLeft, setTimeLeft] = useState(15)
   const [showResults, setShowResults] = useState(false)
+  const [showSummary, setShowSummary] = useState(false)
   const [roundNumber, setRoundNumber] = useState(1)
   const [winner, setWinner] = useState(null)
   const [winners, setWinners] = useState([])
@@ -466,6 +467,13 @@ function Game() {
   }
 
   const handleNextRound = async () => {
+    // Check if we should show summary (every 5 rounds)
+    if (roundNumber % 5 === 0) {
+      setShowSummary(true)
+      setShowResults(false)
+      return
+    }
+
     const { questions } = await import('../data/questions')
     const randomQuestion = questions[Math.floor(Math.random() * questions.length)]
     
@@ -483,6 +491,35 @@ function Game() {
     
     // Reset state for new round
     setShowResults(false)
+    setShowSummary(false)
+    setHasVoted(false)
+    setVotes([])
+    setResultsVotes([])
+    setWinner(null)
+    setWinners([])
+    setRoundNumber(newRoundNumber)
+    setIsEndingVoting(false)
+  }
+
+  const handleContinueFromSummary = async () => {
+    const { questions } = await import('../data/questions')
+    const randomQuestion = questions[Math.floor(Math.random() * questions.length)]
+    
+    const newRoundNumber = roundNumber + 1
+    const roundEndTime = new Date(Date.now() + 15 * 1000).toISOString()
+    
+    await supabase
+      .from('rooms')
+      .update({
+        current_question: randomQuestion,
+        round_number: newRoundNumber,
+        round_end_time: roundEndTime
+      })
+      .eq('code', code.toLowerCase())
+    
+    // Reset state for new round
+    setShowResults(false)
+    setShowSummary(false)
     setHasVoted(false)
     setVotes([])
     setResultsVotes([])
@@ -540,6 +577,52 @@ function Game() {
 
   if (!room || room.status === 'waiting') {
     return <div className="game">Loading...</div>
+  }
+
+  if (showSummary) {
+    const removedPlayers = room?.removed_players || []
+    const activePlayers = players.filter(p => !removedPlayers.includes(p.nickname))
+    const sortedPlayers = [...activePlayers].sort((a, b) => (b.drink_count || 0) - (a.drink_count || 0))
+
+    return (
+      <div className="game results">
+        <h2 className="results-title">Round {roundNumber} Summary</h2>
+        <p style={{ marginBottom: '2rem', color: '#a0a0a0' }}>Total drinks after {roundNumber} rounds</p>
+        
+        <div className="vote-chart">
+          {sortedPlayers.map(player => (
+            <div key={player.nickname} className="vote-bar">
+              <div className="vote-bar-label">
+                <span>
+                  {player.emoji && <span style={{ marginRight: '0.5rem' }}>{player.emoji}</span>}
+                  {player.nickname}
+                </span>
+                <span>{player.drink_count || 0} drinks</span>
+              </div>
+              <div 
+                className="vote-bar-fill" 
+                style={{ width: `${sortedPlayers.length > 0 ? ((player.drink_count || 0) / sortedPlayers[0].drink_count) * 100 : 0}%` }}
+              />
+            </div>
+          ))}
+        </div>
+        
+        {isHost && (
+          <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', marginTop: '2rem' }}>
+            <button className="btn btn-primary btn-large" onClick={handleContinueFromSummary}>
+              Next Round
+            </button>
+            <button 
+              className="btn btn-secondary btn-large" 
+              onClick={handleEndGame}
+              style={{ backgroundColor: '#ff4444' }}
+            >
+              End Game
+            </button>
+          </div>
+        )}
+      </div>
+    )
   }
 
   if (showResults) {
