@@ -9,7 +9,7 @@ import GameOver from './pages/GameOver'
 import JoinRoom from './pages/JoinRoom'
 import './App.css'
 
-const APP_VERSION = "1.0.79"
+const APP_VERSION = "1.0.80"
 
 function Home() {
   const navigate = useNavigate()

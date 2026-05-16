@@ -249,8 +249,19 @@
 .timer {
   font-size: 2rem;
   font-weight: 700;
-  margin-bottom: 2rem;
+  margin-bottom: 1rem;
   color: #667eea;
+}
+
+.vote-counter {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-bottom: 1.5rem;
+  color: #a0a0a0;
+  background: #1f1f1f;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  border: 2px solid #333;
 }
 
 .question-card {

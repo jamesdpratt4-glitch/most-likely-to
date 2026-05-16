@@ -820,6 +820,11 @@ function Game() {
     <div className="game">
       <div className="timer">Time left: {timeLeft}s</div>
       
+      {/* Live vote counter */}
+      <div className="vote-counter">
+        {new Set(votes.map(v => v.voter_nickname)).size} / {players.length} votes cast
+      </div>
+      
       {/* Debug info */}
       <div style={{ fontSize: '10px', color: '#666', marginBottom: '10px' }}>
         Players: {players.length} | Votes: {votes.length} | Round: {roundNumber}
