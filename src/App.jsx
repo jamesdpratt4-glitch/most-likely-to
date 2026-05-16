@@ -4,9 +4,10 @@ import { supabase } from './lib/supabase'
 import HostLobby from './pages/HostLobby'
 import PlayerLobby from './pages/PlayerLobby'
 import Game from './pages/Game'
+import GameOver from './pages/GameOver'
 import './App.css'
 
-const APP_VERSION = "1.0.36"
+const APP_VERSION = "1.0.37"
 
 function Home() {
   const navigate = useNavigate()
@@ -266,6 +267,7 @@ function App() {
       <Route path="/host/:code" element={<HostLobby />} />
       <Route path="/lobby/:code" element={<PlayerLobby />} />
       <Route path="/game/:code" element={<Game />} />
+      <Route path="/game-over" element={<GameOver />} />
     </Routes>
   )
 }

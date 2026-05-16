@@ -47,6 +47,15 @@ function Game() {
         return
       }
 
+      const handleEndGame = async () => {
+        await supabase
+          .from('rooms')
+          .update({ status: 'ended' })
+          .eq('code', code.toLowerCase())
+        
+        navigate('/game-over')
+      }
+
       // Verify player is still in the players table
       const { data: playerData } = await supabase
         .from('players')
@@ -83,7 +92,6 @@ function Game() {
           filter: `code=eq.${code.toLowerCase()}`
         },
         (payload) => {
-          console.log("=== ROOM SUBSCRIPTION TRIGGERED ===", payload)
           setRoom(payload.new)
           // Sync round number from database
           if (payload.new.round_number !== undefined) {
@@ -93,13 +101,9 @@ function Game() {
           if (payload.new.status === 'waiting') {
             window.location.href = isHost ? `/host/${code}` : `/lobby/${code}`
           }
-          // If room status changes to 'ended', redirect to home and clear localStorage
+          // If room status changes to 'ended', redirect to game over screen
           if (payload.new.status === 'ended') {
-            console.log("=== GAME ENDED DETECTED - REDIRECTING TO HOME ===")
-            localStorage.removeItem('nickname')
-            localStorage.removeItem('roomCode')
-            localStorage.removeItem('isHost')
-            navigate('/')
+            navigate('/game-over')
           }
           // If current_question changes (new round), reset voting state
           if (payload.old.current_question !== payload.new.current_question) {
@@ -141,29 +145,14 @@ function Game() {
 
     // Poll room status every 2 seconds to check for game end (fallback for subscription issues)
     const roomStatusInterval = setInterval(async () => {
-      try {
-        const { data: roomData, error } = await supabase
-          .from('rooms')
-          .select('status')
-          .eq('code', code.toLowerCase())
-          .single()
-        
-        if (error) {
-          console.log("=== ROOM STATUS POLL ERROR ===", error)
-          return
-        }
-        
-        console.log("=== ROOM STATUS POLL ===", roomData?.status)
-        
-        if (roomData?.status === 'ended') {
-          console.log("=== GAME ENDED DETECTED VIA POLLING - REDIRECTING TO HOME ===")
-          localStorage.removeItem('nickname')
-          localStorage.removeItem('roomCode')
-          localStorage.removeItem('isHost')
-          navigate('/')
-        }
-      } catch (err) {
-        console.log("=== ROOM STATUS POLL CATCH ERROR ===", err)
+      const { data: roomData } = await supabase
+        .from('rooms')
+        .select('status')
+        .eq('code', code.toLowerCase())
+        .single()
+      
+      if (roomData?.status === 'ended') {
+        navigate('/game-over')
       }
     }, 2000)
 
@@ -498,27 +487,12 @@ function Game() {
   }
 
   const handleEndGame = async () => {
-    console.log("=== END GAME BUTTON CLICKED ===")
-    console.log("Updating room status to 'ended' for code:", code.toLowerCase())
-    
-    const { error } = await supabase
+    await supabase
       .from('rooms')
       .update({ status: 'ended' })
       .eq('code', code.toLowerCase())
     
-    if (error) {
-      console.log("=== END GAME UPDATE ERROR ===", error)
-    } else {
-      console.log("=== END GAME UPDATE SUCCESS ===")
-    }
-    
-    // Clear localStorage
-    localStorage.removeItem('nickname')
-    localStorage.removeItem('roomCode')
-    localStorage.removeItem('isHost')
-    
-    console.log("=== NAVIGATING TO HOME ===")
-    navigate('/')
+    navigate('/game-over')
   }
 
   if (!room || room.status === 'waiting') {
