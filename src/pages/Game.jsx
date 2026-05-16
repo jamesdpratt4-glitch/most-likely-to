@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 
@@ -20,15 +20,8 @@ function Game() {
   const [isEndingVoting, setIsEndingVoting] = useState(false)
   
   const myNickname = localStorage.getItem('nickname')
-  const channelsCreated = useRef(false)
 
   useEffect(() => {
-    // Prevent duplicate channel creation
-    if (channelsCreated.current) {
-      return
-    }
-    channelsCreated.current = true
-
     // Verify user has required localStorage data
     const storedRoomCode = localStorage.getItem('roomCode')
     const nickname = localStorage.getItem('nickname')
@@ -111,24 +104,7 @@ function Game() {
       )
       .subscribe()
 
-    // Subscribe to players changes
-    const playersChannel = supabase
-      .channel(`players:${code.toLowerCase()}`)
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'players',
-          filter: `room_code=eq.${code.toLowerCase()}`
-        },
-        () => {
-          fetchPlayers()
-        }
-      )
-      .subscribe()
-
-    // Subscribe to votes changes
+    // Subscribe to votes changes (critical for voting sync)
     const votesChannel = supabase
       .channel(`votes:${code.toLowerCase()}`)
       .on(
@@ -146,11 +122,15 @@ function Game() {
       )
       .subscribe()
 
+    // Poll players every 3 seconds instead of subscription (to avoid race condition)
+    const playersInterval = setInterval(() => {
+      fetchPlayers()
+    }, 3000)
+
     return () => {
       supabase.removeChannel(roomChannel)
-      supabase.removeChannel(playersChannel)
       supabase.removeChannel(votesChannel)
-      channelsCreated.current = false
+      clearInterval(playersInterval)
     }
   }, [code, isHost, navigate])
 
