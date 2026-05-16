@@ -184,9 +184,13 @@ function Game() {
     
     if (data) {
       setVotes(data)
-      // Check if current player has voted
+      // Check if current player has voted in database
       const myVote = data.find(v => v.voter_nickname === myNickname)
-      setHasVoted(!!myVote)
+      // Only set hasVoted to true if we find their vote, never reset to false
+      // This prevents real-time updates from unlocking the button after user has voted
+      if (myVote && !hasVoted) {
+        setHasVoted(true)
+      }
     }
   }
 
@@ -341,7 +345,7 @@ function Game() {
       
       <div className="players-section">
         <h3>Vote for:</h3>
-        <div className="vote-buttons">
+        <div className="vote-buttons" style={hasVoted ? { opacity: 0.5, pointerEvents: 'none' } : {}}>
           {votingPlayers.map(player => {
             const isSelf = player.nickname === myNickname
             return (
@@ -359,7 +363,7 @@ function Game() {
         </div>
       </div>
       
-      {hasVoted && <p className="voted-message">Vote submitted!</p>}
+      {hasVoted && <p className="voted-message">Vote submitted! Waiting for other players...</p>}
     </div>
   )
 }
