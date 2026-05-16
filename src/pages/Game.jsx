@@ -104,6 +104,13 @@ function Game() {
           if (payload.new.round_number !== undefined) {
             setRoundNumber(payload.new.round_number)
           }
+          // Sync show_summary state
+          if (payload.new.show_summary !== undefined) {
+            setShowSummary(payload.new.show_summary)
+            if (payload.new.show_summary) {
+              setShowResults(false)
+            }
+          }
           // If room status changes to 'waiting', redirect to lobby
           if (payload.new.status === 'waiting') {
             window.location.href = isHost ? `/host/${code}` : `/lobby/${code}`
@@ -476,8 +483,10 @@ function Game() {
   const handleNextRound = async () => {
     // Check if we should show summary (every 5 rounds)
     if (roundNumber % 5 === 0) {
-      setShowSummary(true)
-      setShowResults(false)
+      await supabase
+        .from('rooms')
+        .update({ show_summary: true })
+        .eq('code', code.toLowerCase())
       return
     }
 
@@ -520,7 +529,8 @@ function Game() {
       .update({
         current_question: randomQuestion,
         round_number: newRoundNumber,
-        round_end_time: roundEndTime
+        round_end_time: roundEndTime,
+        show_summary: false
       })
       .eq('code', code.toLowerCase())
     
