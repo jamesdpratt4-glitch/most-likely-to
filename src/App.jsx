@@ -6,6 +6,8 @@ import PlayerLobby from './pages/PlayerLobby'
 import Game from './pages/Game'
 import './App.css'
 
+const APP_VERSION = "1.0.0"
+
 function Home() {
   const navigate = useNavigate()
   const [showJoinForm, setShowJoinForm] = useState(false)
@@ -150,8 +152,8 @@ function Home() {
         </form>
       )}
       
-      <div className="version-number" style={{ position: 'fixed', bottom: '10px', right: '10px', opacity: 0.3, fontSize: '12px', color: '#666' }}>
-        v{__APP_VERSION__}
+      <div className="version-number" style={{ position: 'fixed', bottom: '10px', right: '10px', opacity: 0.3, fontSize: '12px', color: '#888', zIndex: 9999 }}>
+        v{APP_VERSION}
       </div>
     </div>
   )
