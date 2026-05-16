@@ -8,6 +8,7 @@ function HostLobby() {
   const { code } = useParams()
   const navigate = useNavigate()
   const [players, setPlayers] = useState([])
+  const [qrUrl, setQrUrl] = useState('')
 
   useEffect(() => {
     const validateAndLoad = async () => {
@@ -51,6 +52,9 @@ function HostLobby() {
         navigate('/')
         return
       }
+
+      // Set QR URL after component is mounted
+      setQrUrl(`${window.location.origin}/join/${code}`)
 
       // Fetch initial players
       fetchPlayers()
@@ -114,11 +118,10 @@ function HostLobby() {
       <div className="qr-section">
         <p className="qr-label">Scan to join</p>
         <div className="qr-code">
-          <QRCode 
-            value={`${window.location.origin}/join/${code}`}
-            size={200}
-            level="M"
-          />
+          {/* QR code temporarily disabled for debugging */}
+          <div style={{ width: 200, height: 200, background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#000' }}>
+            QR Code
+          </div>
         </div>
       </div>
       
