@@ -498,16 +498,26 @@ function Game() {
   }
 
   const handleEndGame = async () => {
-    await supabase
+    console.log("=== END GAME BUTTON CLICKED ===")
+    console.log("Updating room status to 'ended' for code:", code.toLowerCase())
+    
+    const { error } = await supabase
       .from('rooms')
       .update({ status: 'ended' })
       .eq('code', code.toLowerCase())
+    
+    if (error) {
+      console.log("=== END GAME UPDATE ERROR ===", error)
+    } else {
+      console.log("=== END GAME UPDATE SUCCESS ===")
+    }
     
     // Clear localStorage
     localStorage.removeItem('nickname')
     localStorage.removeItem('roomCode')
     localStorage.removeItem('isHost')
     
+    console.log("=== NAVIGATING TO HOME ===")
     navigate('/')
   }
 
