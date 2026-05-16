@@ -54,7 +54,8 @@ function HostLobby() {
       }
 
       // Generate QR code data URL after component is mounted
-      const joinUrl = `${window.location.origin}/join/${code}`
+      const appUrl = import.meta.env.VITE_APP_URL || window.location.origin
+      const joinUrl = `${appUrl}/join/${code}`
       QRCode.toDataURL(joinUrl, { width: 200, margin: 1 }, (err, url) => {
         if (err) {
           console.error('Error generating QR code:', err)
