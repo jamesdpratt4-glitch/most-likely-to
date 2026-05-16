@@ -293,12 +293,14 @@ function Game() {
   }
 
   const fetchPlayers = async () => {
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from('players')
       .select('nickname, drink_count, emoji')
       .eq('room_code', code.toLowerCase())
     
+    console.log("=== FETCH PLAYERS ===", { data, error })
     if (data) {
+      console.log("Players data with drink counts:", data.map(p => ({ nickname: p.nickname, drink_count: p.drink_count })))
       setPlayers(data)
     }
   }
@@ -487,14 +489,25 @@ function Game() {
           .eq('nickname', winnerNickname)
           .single()
         
+        console.log("=== UPDATE DRINK COUNT ===", { winnerNickname, playerData, voteCounts })
+        
         if (playerData) {
           const votesReceived = voteCounts[winnerNickname] || 0
           const newDrinkCount = (playerData.drink_count || 0) + votesReceived
-          await supabase
+          console.log("=== DRINK COUNT UPDATE ===", { 
+            winnerNickname, 
+            currentCount: playerData.drink_count, 
+            votesReceived, 
+            newCount: newDrinkCount 
+          })
+          
+          const { error: updateError } = await supabase
             .from('players')
             .update({ drink_count: newDrinkCount })
             .eq('room_code', code.toLowerCase())
             .eq('nickname', winnerNickname)
+          
+          console.log("=== DRINK COUNT UPDATE RESULT ===", { error: updateError })
         }
       }
     }
@@ -618,6 +631,13 @@ function Game() {
     const removedPlayers = room?.removed_players || []
     const activePlayers = players.filter(p => !removedPlayers.includes(p.nickname))
     const sortedPlayers = [...activePlayers].sort((a, b) => (b.drink_count || 0) - (a.drink_count || 0))
+    
+    console.log("=== SUMMARY SCREEN ===", { 
+      players, 
+      removedPlayers, 
+      activePlayers, 
+      sortedPlayers 
+    })
 
     return (
       <div className="game results">
