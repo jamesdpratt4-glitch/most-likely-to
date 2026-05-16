@@ -1,7 +1,7 @@
 {
   "name": "most-likely-to",
   "private": true,
-  "version": "1.0.83",
+  "version": "1.0.84",
   "type": "module",
   "scripts": {
     "dev": "vite",
