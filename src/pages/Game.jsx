@@ -508,6 +508,11 @@ function Game() {
     <div className="game">
       <div className="timer">Time left: {timeLeft}s</div>
       
+      {/* Debug info */}
+      <div style={{ fontSize: '10px', color: '#666', marginBottom: '10px' }}>
+        Players: {players.length} | Votes: {votes.length} | Round: {roundNumber}
+      </div>
+      
       <div className="question-card">
         <h2 className="question-text">{room.current_question}</h2>
       </div>
