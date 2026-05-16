@@ -5,7 +5,7 @@ import { supabase } from '../lib/supabase'
 function Game() {
   const { code } = useParams()
   const navigate = useNavigate()
-  const isHost = localStorage.getItem('isHost') === 'true' && localStorage.getItem('roomCode') === code
+  const isHost = localStorage.getItem('isHost') === 'true' && localStorage.getItem('roomCode')?.toLowerCase() === code.toLowerCase()
   
   const [room, setRoom] = useState(null)
   const [players, setPlayers] = useState([])
@@ -26,14 +26,14 @@ function Game() {
 
     // Subscribe to room changes
     const roomChannel = supabase
-      .channel(`room:${code}`)
+      .channel(`room:${code.toLowerCase()}`)
       .on(
         'postgres_changes',
         {
           event: 'UPDATE',
           schema: 'public',
           table: 'rooms',
-          filter: `code=eq.${code}`
+          filter: `code=eq.${code.toLowerCase()}`
         },
         (payload) => {
           setRoom(payload.new)
@@ -56,14 +56,14 @@ function Game() {
 
     // Subscribe to players changes
     const playersChannel = supabase
-      .channel(`players:${code}`)
+      .channel(`players:${code.toLowerCase()}`)
       .on(
         'postgres_changes',
         {
           event: '*',
           schema: 'public',
           table: 'players',
-          filter: `room_code=eq.${code}`
+          filter: `room_code=eq.${code.toLowerCase()}`
         },
         () => {
           fetchPlayers()
@@ -73,14 +73,14 @@ function Game() {
 
     // Subscribe to votes changes
     const votesChannel = supabase
-      .channel(`votes:${code}`)
+      .channel(`votes:${code.toLowerCase()}`)
       .on(
         'postgres_changes',
         {
           event: '*',
           schema: 'public',
           table: 'votes',
-          filter: `room_code=eq.${code}`
+          filter: `room_code=eq.${code.toLowerCase()}`
         },
         () => {
           fetchVotes()
@@ -124,7 +124,7 @@ function Game() {
     const { data } = await supabase
       .from('rooms')
       .select('*')
-      .eq('code', code)
+      .eq('code', code.toLowerCase())
       .single()
     
     if (data) {
@@ -133,7 +133,7 @@ function Game() {
       const { data: existingVotes } = await supabase
         .from('votes')
         .select('round_number')
-        .eq('room_code', code)
+        .eq('room_code', code.toLowerCase())
       
       if (existingVotes && existingVotes.length > 0) {
         const maxRound = Math.max(...existingVotes.map(v => v.round_number))
@@ -146,7 +146,7 @@ function Game() {
     const { data } = await supabase
       .from('players')
       .select('nickname, drink_count')
-      .eq('room_code', code)
+      .eq('room_code', code.toLowerCase())
     
     if (data) {
       setPlayers(data)
@@ -157,7 +157,7 @@ function Game() {
     const { data } = await supabase
       .from('votes')
       .select('*')
-      .eq('room_code', code)
+      .eq('room_code', code.toLowerCase())
       .eq('round_number', roundNumber)
     
     if (data) {
@@ -177,17 +177,28 @@ function Game() {
       return
     }
 
+    // Force local button lockout immediately
+    setHasVoted(true)
+
+    // Force dump variables to console
+    console.log("=== VOTING DEBUG PROFILE ===");
+    console.log("Current Room Code Variable:", code);
+    console.log("Current Round Number Variable:", roundNumber);
+    console.log("My Nickname (Voter):", myNickname);
+    console.log("Target Player Voted For:", votedFor);
+
     const { error } = await supabase
       .from('votes')
       .insert({
-        room_code: code,
+        room_code: code.toLowerCase(),
         round_number: roundNumber,
         voter_nickname: myNickname,
         voted_for: votedFor
       })
     
-    if (!error) {
-      setHasVoted(true)
+    if (error) {
+      console.error("Vote insertion error:", error)
+      setHasVoted(false) // Re-enable button if error occurs
     }
   }
 
@@ -216,7 +227,7 @@ function Game() {
       await supabase
         .from('players')
         .update({ drink_count: supabase.raw('drink_count + 1') })
-        .eq('room_code', code)
+        .eq('room_code', code.toLowerCase())
         .eq('nickname', roundWinner)
     }
   }
@@ -232,7 +243,7 @@ function Game() {
       .update({
         current_question: randomQuestion
       })
-      .eq('code', code)
+      .eq('code', code.toLowerCase())
     
     // Reset state for new round
     setShowResults(false)
