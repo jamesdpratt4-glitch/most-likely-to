@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
+import { motion, AnimatePresence } from 'framer-motion'
 
 function Game() {
   const { code } = useParams()
@@ -262,26 +263,6 @@ function Game() {
       return () => clearInterval(timer)
     }
   }, [room, showResults, votes, players])
-
-  useEffect(() => {
-    // Fetch fresh votes when results are shown (for non-host players)
-    if (showResults) {
-      const fetchResultsVotes = async () => {
-        console.log("=== FETCHING RESULTS VOTES FOR DISPLAY ===");
-        const { data: freshVotes } = await supabase
-          .from('votes')
-          .select('*')
-          .eq('room_code', code.toLowerCase())
-          .eq('round_number', roundNumber)
-        
-        console.log("Results votes from DB:", freshVotes);
-        if (freshVotes) {
-          setResultsVotes(freshVotes)
-        }
-      }
-      fetchResultsVotes()
-    }
-  }, [showResults, roundNumber, code])
 
   // Trigger countdown when all votes are in during transition
   useEffect(() => {
@@ -1021,66 +1002,163 @@ function Game() {
 
     const sortedPlayers = [...players].sort((a, b) => (voteCounts[b.nickname] || 0) - (voteCounts[a.nickname] || 0))
 
+    // Only trigger animations when we have actual data from the database
+    const hasData = resultsVotes.length > 0
+
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-slate-950 text-white p-5">
         <div className="container mx-auto px-4 max-w-2xl text-center">
-          <h2 className="text-4xl font-bold mb-8 text-white tracking-tight">Results</h2>
+          {hasData ? (
+            <motion.h2 
+              className="text-4xl font-bold mb-8 text-white tracking-tight"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.4, delay: 0.1, ease: [0.25, 0.1, 0.25, 1] }}
+            >
+              Results
+            </motion.h2>
+          ) : (
+            <h2 className="text-4xl font-bold mb-8 text-white tracking-tight">Results</h2>
+          )}
           
           <div className="w-full space-y-3">
             {winners.length > 0 && (
-              <div className="text-3xl font-bold text-white text-center mb-4">
-                {winners.length === 1 ? (
-                  <h3>{winners[0]} drinks! 🍺</h3>
-                ) : (
-                  <h3>{winners.join(' & ')} drink! 🍺</h3>
-                )}
-              </div>
+              hasData ? (
+                <motion.div 
+                  className="text-3xl font-bold text-white text-center mb-4"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ duration: 0.4, delay: 0.2, ease: [0.25, 0.1, 0.25, 1] }}
+                >
+                  {winners.length === 1 ? (
+                    <h3>{winners[0]} drinks! 🍺</h3>
+                  ) : (
+                    <h3>{winners.join(' & ')} drink! 🍺</h3>
+                  )}
+                </motion.div>
+              ) : (
+                <div className="text-3xl font-bold text-white text-center mb-4">
+                  {winners.length === 1 ? (
+                    <h3>{winners[0]} drinks! 🍺</h3>
+                  ) : (
+                    <h3>{winners.join(' & ')} drink! 🍺</h3>
+                  )}
+                </div>
+              )
             )}
             
           {isHost && (
-            <div className="flex gap-4 justify-center flex-wrap mb-6">
-              <button className="text-lg font-semibold py-4 px-8 rounded-xl border-none cursor-pointer transition-all duration-300 ease-in-out hover:bg-green-600 active:scale-95 min-w-[200px] bg-green-500 text-white shadow-lg shadow-green-500/20" onClick={handleNextRound}>
-                Next Round
-              </button>
-              <button 
-                className="text-lg font-semibold py-4 px-8 rounded-xl border-none cursor-pointer transition-all duration-300 ease-in-out hover:bg-indigo-600 active:scale-95 min-w-[200px] bg-indigo-500 text-white shadow-lg shadow-indigo-500/20"
-                onClick={handleShowSummary}
+            hasData ? (
+              <motion.div 
+                className="flex gap-4 justify-center flex-wrap mb-6"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.4, delay: 0.3, ease: [0.25, 0.1, 0.25, 1] }}
               >
-                Drinks So Far
-              </button>
-              <button 
-                className="text-lg font-semibold py-4 px-8 rounded-xl border-none cursor-pointer transition-all duration-300 ease-in-out hover:bg-slate-700 active:scale-95 min-w-[200px] bg-slate-600 text-white"
-                onClick={async () => {
-                  setShowDetailedVotes(true)
-                  await supabase
-                    .channel(`reveal_votes:${code.toLowerCase()}`)
-                    .send({
-                      type: 'broadcast',
-                      event: 'reveal_votes',
-                      payload: { roundNumber }
-                    })
-                }}
-                disabled={showDetailedVotes}
-              >
-                {showDetailedVotes ? 'Votes Revealed' : 'Reveal Votes'}
-              </button>
-              <button 
-                className="text-lg font-semibold py-4 px-8 rounded-xl border-none cursor-pointer transition-all duration-300 ease-in-out hover:bg-red-500 active:scale-95 min-w-[200px] bg-red-600 text-white shadow-lg shadow-red-600/20"
-                onClick={handleEndGame}
-              >
-                End Game
-              </button>
-            </div>
+                <button className="text-lg font-semibold py-4 px-8 rounded-xl border-none cursor-pointer transition-all duration-300 ease-in-out hover:bg-green-600 active:scale-95 min-w-[200px] bg-green-500 text-white shadow-lg shadow-green-500/20" onClick={handleNextRound}>
+                  Next Round
+                </button>
+                <button 
+                  className="text-lg font-semibold py-4 px-8 rounded-xl border-none cursor-pointer transition-all duration-300 ease-in-out hover:bg-indigo-600 active:scale-95 min-w-[200px] bg-indigo-500 text-white shadow-lg shadow-indigo-500/20"
+                  onClick={handleShowSummary}
+                >
+                  Drinks So Far
+                </button>
+                <button 
+                  className="text-lg font-semibold py-4 px-8 rounded-xl border-none cursor-pointer transition-all duration-300 ease-in-out hover:bg-slate-700 active:scale-95 min-w-[200px] bg-slate-600 text-white"
+                  onClick={async () => {
+                    setShowDetailedVotes(true)
+                    await supabase
+                      .channel(`reveal_votes:${code.toLowerCase()}`)
+                      .send({
+                        type: 'broadcast',
+                        event: 'reveal_votes',
+                        payload: { roundNumber }
+                      })
+                  }}
+                  disabled={showDetailedVotes}
+                >
+                  {showDetailedVotes ? 'Votes Revealed' : 'Reveal Votes'}
+                </button>
+                <button 
+                  className="text-lg font-semibold py-4 px-8 rounded-xl border-none cursor-pointer transition-all duration-300 ease-in-out hover:bg-red-500 active:scale-95 min-w-[200px] bg-red-600 text-white shadow-lg shadow-red-600/20"
+                  onClick={handleEndGame}
+                >
+                  End Game
+                </button>
+              </motion.div>
+            ) : (
+              <div className="flex gap-4 justify-center flex-wrap mb-6">
+                <button className="text-lg font-semibold py-4 px-8 rounded-xl border-none cursor-pointer transition-all duration-300 ease-in-out hover:bg-green-600 active:scale-95 min-w-[200px] bg-green-500 text-white shadow-lg shadow-green-500/20" onClick={handleNextRound}>
+                  Next Round
+                </button>
+                <button 
+                  className="text-lg font-semibold py-4 px-8 rounded-xl border-none cursor-pointer transition-all duration-300 ease-in-out hover:bg-indigo-600 active:scale-95 min-w-[200px] bg-indigo-500 text-white shadow-lg shadow-indigo-500/20"
+                  onClick={handleShowSummary}
+                >
+                  Drinks So Far
+                </button>
+                <button 
+                  className="text-lg font-semibold py-4 px-8 rounded-xl border-none cursor-pointer transition-all duration-300 ease-in-out hover:bg-slate-700 active:scale-95 min-w-[200px] bg-slate-600 text-white"
+                  onClick={async () => {
+                    setShowDetailedVotes(true)
+                    await supabase
+                      .channel(`reveal_votes:${code.toLowerCase()}`)
+                      .send({
+                        type: 'broadcast',
+                        event: 'reveal_votes',
+                        payload: { roundNumber }
+                      })
+                  }}
+                  disabled={showDetailedVotes}
+                >
+                  {showDetailedVotes ? 'Votes Revealed' : 'Reveal Votes'}
+                </button>
+                <button 
+                  className="text-lg font-semibold py-4 px-8 rounded-xl border-none cursor-pointer transition-all duration-300 ease-in-out hover:bg-red-500 active:scale-95 min-w-[200px] bg-red-600 text-white shadow-lg shadow-red-600/20"
+                  onClick={handleEndGame}
+                >
+                  End Game
+                </button>
+              </div>
+            )
           )}
             
-            {sortedPlayers.map(player => {
+            {sortedPlayers.map((player, index) => {
               const count = voteCounts[player.nickname] || 0
               const percentage = activePlayers.length > 0 ? (count / activePlayers.length) * 100 : 0
               const isWinner = winners.includes(player.nickname)
               const isRemoved = removedPlayers.includes(player.nickname)
               const votersForPlayer = resultsVotes.filter(v => v.voted_for === player.nickname)
               
-              return (
+              return hasData ? (
+                <motion.div 
+                  key={player.nickname} 
+                  className={`w-full p-4 bg-zinc-900/50 rounded-xl border ${isWinner ? 'border-indigo-500 ring-2 ring-indigo-500/50' : 'border-slate-800'} ${isRemoved ? 'opacity-50' : ''} transition-all duration-300 ease-in-out`}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ duration: 0.3, delay: 0.4 + index * 0.1, ease: [0.25, 0.1, 0.25, 1] }}
+                >
+                  <div className="flex justify-between items-center mb-2">
+                    <span className="flex items-center font-medium text-slate-200">
+                      {player.emoji && <span className="mr-2 text-2xl">{player.emoji}</span>}
+                      {player.nickname}{isRemoved ? ' (removed)' : ''}
+                    </span>
+                    <span className="font-semibold text-white">{count} votes</span>
+                  </div>
+                  <div 
+                    className="h-2 bg-zinc-800 rounded-full overflow-hidden"
+                    style={{ width: `${percentage}%` }}
+                  >
+                    <div className={`h-full transition-all duration-300 ease-in-out ${isWinner ? 'bg-indigo-500' : 'bg-slate-600'}`} style={{ width: '100%' }} />
+                  </div>
+                  {showDetailedVotes && votersForPlayer.length > 0 && (
+                    <div className="mt-2 text-sm text-slate-400">
+                      Voted by: {votersForPlayer.map(v => v.voter_nickname).join(', ')}
+                    </div>
+                  )}
+                </motion.div>
+              ) : (
                 <div key={player.nickname} className={`w-full p-4 bg-zinc-900/50 rounded-xl border ${isWinner ? 'border-indigo-500 ring-2 ring-indigo-500/50' : 'border-slate-800'} ${isRemoved ? 'opacity-50' : ''} transition-all duration-300 ease-in-out`}>
                   <div className="flex justify-between items-center mb-2">
                     <span className="flex items-center font-medium text-slate-200">
