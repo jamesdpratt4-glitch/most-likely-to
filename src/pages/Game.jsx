@@ -545,16 +545,21 @@ function Game() {
     }
 
     // Fetch random question from database
+    console.log("=== FETCHING QUESTION FROM DATABASE ===")
     const { data: questions, error: questionError } = await supabase
       .from('questions')
       .select('question_text, question_type, rules')
       .eq('active', true)
     
+    console.log("Database query result:", { questionError, questionsCount: questions?.length })
+    
     if (questionError || !questions || questions.length === 0) {
-      console.error("=== ERROR FETCHING QUESTIONS ===", questionError)
+      console.error("=== ERROR FETCHING QUESTIONS - USING FALLBACK ===", questionError)
       // Fallback to static questions if database query fails
       const { questions: fallbackQuestions } = await import('../data/questions')
       const randomQuestion = fallbackQuestions[Math.floor(Math.random() * fallbackQuestions.length)]
+      
+      console.log("=== USING STATIC JSON FALLBACK ===", { question: randomQuestion, source: 'static_json' })
       
       const newRoundNumber = roundNumber + 1
       const roundEndTime = new Date(Date.now() + 15 * 1000).toISOString()
@@ -574,6 +579,14 @@ function Game() {
       const randomQuestion = questions[Math.floor(Math.random() * questions.length)]
       const newRoundNumber = roundNumber + 1
       const roundEndTime = new Date(Date.now() + 15 * 1000).toISOString()
+      
+      console.log("=== USING DATABASE QUESTION ===", { 
+        question: randomQuestion.question_text, 
+        type: randomQuestion.question_type, 
+        rules: randomQuestion.rules,
+        source: 'database',
+        totalQuestions: questions.length
+      })
       
       await supabase
         .from('rooms')
@@ -620,18 +633,23 @@ function Game() {
 
   const handleContinueFromSummary = async () => {
     // Fetch random question from database
+    console.log("=== FETCHING QUESTION FROM DATABASE (FROM SUMMARY) ===")
     const { data: questions, error: questionError } = await supabase
       .from('questions')
       .select('question_text, question_type, rules')
       .eq('active', true)
     
+    console.log("Database query result:", { questionError, questionsCount: questions?.length })
+    
     if (questionError || !questions || questions.length === 0) {
-      console.error("=== ERROR FETCHING QUESTIONS ===", questionError)
+      console.error("=== ERROR FETCHING QUESTIONS - USING FALLBACK ===", questionError)
       // Fallback to static questions if database query fails
       const { questions: fallbackQuestions } = await import('../data/questions')
       const randomQuestion = fallbackQuestions[Math.floor(Math.random() * fallbackQuestions.length)]
       const newRoundNumber = roundNumber + 1
       const roundEndTime = new Date(Date.now() + 15 * 1000).toISOString()
+      
+      console.log("=== USING STATIC JSON FALLBACK ===", { question: randomQuestion, source: 'static_json' })
       
       await supabase
         .from('rooms')
@@ -648,6 +666,14 @@ function Game() {
       const randomQuestion = questions[Math.floor(Math.random() * questions.length)]
       const newRoundNumber = roundNumber + 1
       const roundEndTime = new Date(Date.now() + 15 * 1000).toISOString()
+      
+      console.log("=== USING DATABASE QUESTION ===", { 
+        question: randomQuestion.question_text, 
+        type: randomQuestion.question_type, 
+        rules: randomQuestion.rules,
+        source: 'database',
+        totalQuestions: questions.length
+      })
       
       await supabase
         .from('rooms')
