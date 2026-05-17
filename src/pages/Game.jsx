@@ -553,6 +553,9 @@ function Game() {
     
     console.log("Database query result:", { questionError, questionsCount: questions?.length })
     
+    const newRoundNumber = roundNumber + 1
+    const roundEndTime = new Date(Date.now() + 15 * 1000).toISOString()
+    
     if (questionError || !questions || questions.length === 0) {
       console.error("=== ERROR FETCHING QUESTIONS - USING FALLBACK ===", questionError)
       // Fallback to static questions if database query fails
@@ -560,9 +563,6 @@ function Game() {
       const randomQuestion = fallbackQuestions[Math.floor(Math.random() * fallbackQuestions.length)]
       
       console.log("=== USING STATIC JSON FALLBACK ===", { question: randomQuestion, source: 'static_json' })
-      
-      const newRoundNumber = roundNumber + 1
-      const roundEndTime = new Date(Date.now() + 15 * 1000).toISOString()
       
       await supabase
         .from('rooms')
@@ -577,8 +577,6 @@ function Game() {
         .eq('code', code.toLowerCase())
     } else {
       const randomQuestion = questions[Math.floor(Math.random() * questions.length)]
-      const newRoundNumber = roundNumber + 1
-      const roundEndTime = new Date(Date.now() + 15 * 1000).toISOString()
       
       console.log("=== USING DATABASE QUESTION ===", { 
         question: randomQuestion.question_text, 
