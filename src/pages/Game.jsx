@@ -603,19 +603,8 @@ function Game() {
         .eq('code', code.toLowerCase())
     }
     
-    // Reset state for new round
-    processedRoundRef.current = null
-    setShowResults(false)
-    setShowTransition(false)
-    setShowSummary(false)
-    setHasVoted(false)
-    setVotes([])
-    setResultsVotes([])
-    setWinner(null)
-    setWinners([])
-    setRoundNumber(newRoundNumber)
-    setIsEndingVoting(false)
-    setIsTransitioningToNextRound(false)
+    // Don't reset isTransitioningToNextRound here - let room subscription handle it
+    // when new round data arrives to prevent flash of old question
   }
 
   const handleShowSummary = async () => {
@@ -696,19 +685,8 @@ function Game() {
         .eq('code', code.toLowerCase())
     }
     
-    // Reset state for new round
-    processedRoundRef.current = null
-    setShowResults(false)
-    setShowTransition(false)
-    setShowSummary(false)
-    setHasVoted(false)
-    setVotes([])
-    setResultsVotes([])
-    setWinner(null)
-    setWinners([])
-    setRoundNumber(newRoundNumber)
-    setIsEndingVoting(false)
-    setIsTransitioningToNextRound(false)
+    // Don't reset isTransitioningToNextRound here - let room subscription handle it
+    // when new round data arrives to prevent flash of old question
   }
 
   const handleEndGame = async () => {
