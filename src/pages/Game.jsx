@@ -1026,7 +1026,17 @@ function Game() {
         <div className="container mx-auto px-4 max-w-2xl text-center">
           <h2 className="text-4xl font-bold mb-8 text-white tracking-tight">Results</h2>
           
-          <div className="w-full space-y-4">
+          <div className="w-full space-y-3">
+            {winners.length > 0 && (
+              <div className="text-3xl font-bold text-white text-center mb-4">
+                {winners.length === 1 ? (
+                  <h3>{winners[0]} drinks! 🍺</h3>
+                ) : (
+                  <h3>{winners.join(' & ')} drink! 🍺</h3>
+                )}
+              </div>
+            )}
+            
             {sortedPlayers.map(player => {
               const count = voteCounts[player.nickname] || 0
               const percentage = activePlayers.length > 0 ? (count / activePlayers.length) * 100 : 0
@@ -1058,16 +1068,6 @@ function Game() {
               )
             })}
           </div>
-          
-          {winners.length > 0 && (
-            <div className="mt-8 text-2xl font-bold text-white">
-              {winners.length === 1 ? (
-                <h3>{winners[0]} drinks! 🍺</h3>
-              ) : (
-                <h3>{winners.join(' & ')} drink! 🍺</h3>
-              )}
-            </div>
-          )}
           
           {isHost && (
             <div className="flex gap-4 justify-center flex-wrap mt-8">
