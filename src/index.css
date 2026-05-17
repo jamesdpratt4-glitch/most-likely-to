@@ -8,6 +8,39 @@
   .animate-fade-in-up {
     animation: fadeIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
   }
+
+  @keyframes fall {
+    from { transform: translateY(-100vh) rotate(0deg); opacity: 1; }
+    to { transform: translateY(100vh) rotate(360deg); opacity: 0; }
+  }
+  .animate-fall {
+    animation: fall 3s linear infinite;
+  }
+
+  @keyframes explode {
+    from { transform: translate(-50%, -50%) scale(0); opacity: 1; }
+    to { transform: translate(-50%, -50%) scale(2); opacity: 0; }
+  }
+  .animate-explode {
+    animation: explode 0.6s ease-out forwards;
+  }
+
+  @keyframes scaleUp {
+    from { transform: scale(0); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+  }
+  .animate-scale-up {
+    animation: scaleUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+
+  @keyframes bounceIn {
+    0% { transform: scale(0); opacity: 0; }
+    50% { transform: scale(1.2); opacity: 1; }
+    100% { transform: scale(1); opacity: 1; }
+  }
+  .animate-bounce-in {
+    animation: bounceIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
 }
 
 body {

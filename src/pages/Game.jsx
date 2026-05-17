@@ -23,7 +23,12 @@ function Game() {
   const [showDetailedVotes, setShowDetailedVotes] = useState(false)
   const [showTransition, setShowTransition] = useState(false)
   const [isTransitioningToNextRound, setIsTransitioningToNextRound] = useState(false)
+  const [countdownPhase, setCountdownPhase] = useState(false)
+  const [countdownNumber, setCountdownNumber] = useState(3)
+  const [showWinnerReveal, setShowWinnerReveal] = useState(false)
   const processedRoundRef = useRef(null)
+  const countdownTriggeredRef = useRef(false)
+  const countdownIntervalRef = useRef(null)
 
   useEffect(() => {
     // Verify user has required localStorage data
@@ -140,6 +145,9 @@ function Game() {
             setShowResults(false)
             setShowTransition(false)
             setIsTransitioningToNextRound(false)
+            setCountdownPhase(false)
+            setCountdownNumber(3)
+            setShowWinnerReveal(false)
             setHasVoted(false)
             setTimeLeft(15)
             setVotes([])
@@ -149,6 +157,7 @@ function Game() {
             setIsEndingVoting(false)
             setShowDetailedVotes(false) // Reset reveal votes for new round
             processedRoundRef.current = null // Reset processed round for new round
+            countdownTriggeredRef.current = false // Reset countdown trigger for new round
           }
         }
       )
@@ -273,6 +282,52 @@ function Game() {
       fetchResultsVotes()
     }
   }, [showResults, roundNumber, code])
+
+  // Trigger countdown when all votes are in during transition
+  useEffect(() => {
+    if (showTransition) {
+      const uniqueVoters = new Set(votes.map(v => v.voter_nickname))
+      const votesCast = uniqueVoters.size
+      const totalPlayers = players.length
+      const allVotesIn = votesCast === totalPlayers && totalPlayers > 0
+      
+      if (allVotesIn && !countdownPhase && !showWinnerReveal && !countdownTriggeredRef.current) {
+        countdownTriggeredRef.current = true
+        
+        // Add a 1 second delay on vote submitted screen before countdown starts
+        setTimeout(() => {
+          setCountdownPhase(true)
+          setCountdownNumber(3)
+          
+          // Use setTimeout for each number - 2 seconds total for countdown
+          setTimeout(() => {
+            setCountdownNumber(2)
+          }, 666)
+          
+          setTimeout(() => {
+            setCountdownNumber(1)
+          }, 1333)
+          
+          setTimeout(() => {
+            setCountdownPhase(false)
+            setShowWinnerReveal(true)
+          }, 2000)
+        }, 1000)
+      }
+    }
+  }, [showTransition, votes, players, countdownPhase, showWinnerReveal])
+
+  // Winner reveal animation
+  useEffect(() => {
+    if (showWinnerReveal) {
+      const timer = setTimeout(() => {
+        setShowWinnerReveal(false)
+        setShowResults(true)
+        setShowTransition(false)
+      }, 2000)
+      return () => clearTimeout(timer)
+    }
+  }, [showWinnerReveal])
 
   useEffect(() => {
     // Check if all players have voted
@@ -494,11 +549,11 @@ function Game() {
       setResultsVotes(freshVotes)
     }
     
-    // Show results after 1 second delay to allow transition screen to be visible
-    setTimeout(() => {
-      setShowResults(true)
-      setShowTransition(false)
-    }, 1000)
+    // Don't show results here - let countdown/winner reveal handle it
+    // setTimeout(() => {
+    //   setShowResults(true)
+    //   setShowTransition(false)
+    // }, 1000)
     
     // Calculate winner(s) using fresh votes
     const voteCounts = {}
@@ -822,6 +877,64 @@ function Game() {
     const votesCast = uniqueVoters.size
     const totalPlayers = players.length
     const progressPercentage = totalPlayers > 0 ? (votesCast / totalPlayers) * 100 : 0
+    const allVotesIn = votesCast === totalPlayers && totalPlayers > 0
+    
+    // Show countdown when all votes are in
+    if (countdownPhase) {
+      return (
+        <div className="min-h-screen flex flex-col items-center justify-center bg-slate-950 text-white p-5">
+          <div className="container mx-auto px-4 max-w-2xl text-center">
+            <div className={`text-9xl font-bold text-white transition-all duration-300 ${
+              countdownNumber === 3 ? 'scale-100' : countdownNumber === 2 ? 'scale-150' : 'scale-200'
+            }`}>
+              {countdownNumber}
+            </div>
+          </div>
+        </div>
+      )
+    }
+    
+    // Show winner reveal
+    if (showWinnerReveal) {
+      return (
+        <div className="min-h-screen flex flex-col items-center justify-center bg-slate-950 text-white p-5 relative overflow-hidden">
+          {/* Explosion effect */}
+          <div className="absolute inset-0 pointer-events-none">
+            {Array.from({ length: 30 }).map((_, i) => (
+              <div
+                key={i}
+                className="absolute text-6xl animate-explode"
+                style={{
+                  left: '50%',
+                  top: '50%',
+                  transform: `translate(-50%, -50%) rotate(${i * 12}deg)`,
+                  animationDelay: `${i * 0.05}s`
+                }}
+              >
+                💥
+              </div>
+            ))}
+          </div>
+          
+          <div className="container mx-auto px-4 max-w-2xl text-center relative z-10">
+            <h2 className="text-5xl font-bold mb-8 text-white tracking-tight animate-scale-up">
+              {winners.length === 1 ? 'Winner!' : 'Winners!'}
+            </h2>
+            <div className="space-y-4">
+              {winners.map((winner, index) => (
+                <div
+                  key={winner}
+                  className="text-6xl font-bold text-yellow-400 animate-bounce-in"
+                  style={{ animationDelay: `${index * 0.2}s` }}
+                >
+                  {winner} 🍺
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )
+    }
     
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-slate-950 text-white p-5">
