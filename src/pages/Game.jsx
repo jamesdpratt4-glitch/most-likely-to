@@ -22,6 +22,7 @@ function Game() {
   const [isEndingVoting, setIsEndingVoting] = useState(false)
   const [showDetailedVotes, setShowDetailedVotes] = useState(false)
   const [showTransition, setShowTransition] = useState(false)
+  const [isTransitioningToNextRound, setIsTransitioningToNextRound] = useState(false)
   const processedRoundRef = useRef(null)
 
   useEffect(() => {
@@ -138,6 +139,7 @@ function Game() {
             console.log("=== RESETTING VOTING STATE FOR NEW ROUND ===")
             setShowResults(false)
             setShowTransition(false)
+            setIsTransitioningToNextRound(false)
             setHasVoted(false)
             setTimeLeft(15)
             setVotes([])
@@ -530,6 +532,8 @@ function Game() {
   }
 
   const handleNextRound = async () => {
+    setIsTransitioningToNextRound(true)
+    
     console.log("=== HANDLE NEXT ROUND - ATOMIC DRINK UPDATE ===", { roomCode: code.toLowerCase(), roundNumber })
     // Update drink counts before starting next round (if summary wasn't shown)
     const { error: drinkError } = await supabase.rpc('update_drinks_and_show_summary', {
@@ -611,6 +615,7 @@ function Game() {
     setWinners([])
     setRoundNumber(newRoundNumber)
     setIsEndingVoting(false)
+    setIsTransitioningToNextRound(false)
   }
 
   const handleShowSummary = async () => {
@@ -630,6 +635,8 @@ function Game() {
   }
 
   const handleContinueFromSummary = async () => {
+    setIsTransitioningToNextRound(true)
+    
     // Fetch random question from database
     console.log("=== FETCHING QUESTION FROM DATABASE (FROM SUMMARY) ===")
     const { data: questions, error: questionError } = await supabase
@@ -638,6 +645,9 @@ function Game() {
       .eq('active', true)
     
     console.log("Database query result:", { questionError, questionsCount: questions?.length })
+    
+    const newRoundNumber = roundNumber + 1
+    const roundEndTime = new Date(Date.now() + 15 * 1000).toISOString()
     
     if (questionError || !questions || questions.length === 0) {
       console.error("=== ERROR FETCHING QUESTIONS - USING FALLBACK ===", questionError)
@@ -698,6 +708,7 @@ function Game() {
     setWinners([])
     setRoundNumber(newRoundNumber)
     setIsEndingVoting(false)
+    setIsTransitioningToNextRound(false)
   }
 
   const handleEndGame = async () => {
@@ -748,6 +759,22 @@ function Game() {
 
   if (!room || room.status === 'waiting') {
     return <div className="min-h-screen flex flex-col items-center justify-center bg-slate-950 text-white p-5">Loading...</div>
+  }
+
+  if (isTransitioningToNextRound) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-slate-950 text-white p-5">
+        <div className="container mx-auto px-4 max-w-2xl text-center">
+          {/* Loading spinner */}
+          <div className="mb-8">
+            <div className="w-16 h-16 mx-auto border-4 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
+          </div>
+          
+          <h2 className="text-3xl font-bold mb-4 text-white tracking-tight animate-fade-in-up">Loading Next Round...</h2>
+          <p className="text-lg text-slate-300 animate-fade-in-up" style={{ animationDelay: '100ms' }}>Please wait</p>
+        </div>
+      </div>
+    )
   }
 
   if (showSummary) {
