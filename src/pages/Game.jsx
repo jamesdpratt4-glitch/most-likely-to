@@ -397,8 +397,17 @@ function Game() {
   const handleVote = async (votedFor) => {
     if (hasVoted) return
     
-    // Prevent self-voting
-    if (votedFor === myNickname) {
+    // Fetch current question rules from database
+    const { data: roomData } = await supabase
+      .from('rooms')
+      .select('round_number, question_type, question_rules')
+      .eq('code', code.toLowerCase())
+      .single()
+    
+    const questionRules = roomData?.question_rules || { can_vote_self: false }
+    
+    // Check if self-voting is allowed based on question rules
+    if (!questionRules.can_vote_self && votedFor === myNickname) {
       console.error('Cannot vote for yourself')
       return
     }
@@ -414,14 +423,10 @@ function Game() {
     console.log("My Nickname (Voter):", myNickname);
     console.log("Is Host:", isHost);
     console.log("Target Player Voted For:", votedFor);
+    console.log("Question Type:", roomData?.question_type);
+    console.log("Question Rules:", questionRules);
 
     // Fetch current round number from database
-    const { data: roomData } = await supabase
-      .from('rooms')
-      .select('round_number')
-      .eq('code', code.toLowerCase())
-      .single()
-
     const currentRound = roomData?.round_number || roundNumber
 
     const voteData = {
@@ -539,21 +544,49 @@ function Game() {
       console.log("=== SUCCESS: DRINK COUNTS UPDATED (NO SUMMARY) ===")
     }
 
-    const { questions } = await import('../data/questions')
-    const randomQuestion = questions[Math.floor(Math.random() * questions.length)]
+    // Fetch random question from database
+    const { data: questions, error: questionError } = await supabase
+      .from('questions')
+      .select('question_text, question_type, rules')
+      .eq('active', true)
     
-    const newRoundNumber = roundNumber + 1
-    const roundEndTime = new Date(Date.now() + 15 * 1000).toISOString()
-    
-    await supabase
-      .from('rooms')
-      .update({
-        current_question: randomQuestion,
-        round_number: newRoundNumber,
-        round_end_time: roundEndTime,
-        show_summary: false // Reset show_summary for next round
-      })
-      .eq('code', code.toLowerCase())
+    if (questionError || !questions || questions.length === 0) {
+      console.error("=== ERROR FETCHING QUESTIONS ===", questionError)
+      // Fallback to static questions if database query fails
+      const { questions: fallbackQuestions } = await import('../data/questions')
+      const randomQuestion = fallbackQuestions[Math.floor(Math.random() * fallbackQuestions.length)]
+      
+      const newRoundNumber = roundNumber + 1
+      const roundEndTime = new Date(Date.now() + 15 * 1000).toISOString()
+      
+      await supabase
+        .from('rooms')
+        .update({
+          current_question: randomQuestion,
+          round_number: newRoundNumber,
+          round_end_time: roundEndTime,
+          show_summary: false,
+          question_type: 'standard',
+          question_rules: '{"can_vote_self": false}'
+        })
+        .eq('code', code.toLowerCase())
+    } else {
+      const randomQuestion = questions[Math.floor(Math.random() * questions.length)]
+      const newRoundNumber = roundNumber + 1
+      const roundEndTime = new Date(Date.now() + 15 * 1000).toISOString()
+      
+      await supabase
+        .from('rooms')
+        .update({
+          current_question: randomQuestion.question_text,
+          round_number: newRoundNumber,
+          round_end_time: roundEndTime,
+          show_summary: false,
+          question_type: randomQuestion.question_type,
+          question_rules: randomQuestion.rules
+        })
+        .eq('code', code.toLowerCase())
+    }
     
     // Reset state for new round
     processedRoundRef.current = null
@@ -586,20 +619,48 @@ function Game() {
   }
 
   const handleContinueFromSummary = async () => {
-    const { questions } = await import('../data/questions')
-    const randomQuestion = questions[Math.floor(Math.random() * questions.length)]
-    const newRoundNumber = roundNumber + 1
-    const roundEndTime = new Date(Date.now() + 15 * 1000).toISOString()
+    // Fetch random question from database
+    const { data: questions, error: questionError } = await supabase
+      .from('questions')
+      .select('question_text, question_type, rules')
+      .eq('active', true)
     
-    await supabase
-      .from('rooms')
-      .update({
-        current_question: randomQuestion,
-        round_number: newRoundNumber,
-        round_end_time: roundEndTime,
-        show_summary: false
-      })
-      .eq('code', code.toLowerCase())
+    if (questionError || !questions || questions.length === 0) {
+      console.error("=== ERROR FETCHING QUESTIONS ===", questionError)
+      // Fallback to static questions if database query fails
+      const { questions: fallbackQuestions } = await import('../data/questions')
+      const randomQuestion = fallbackQuestions[Math.floor(Math.random() * fallbackQuestions.length)]
+      const newRoundNumber = roundNumber + 1
+      const roundEndTime = new Date(Date.now() + 15 * 1000).toISOString()
+      
+      await supabase
+        .from('rooms')
+        .update({
+          current_question: randomQuestion,
+          round_number: newRoundNumber,
+          round_end_time: roundEndTime,
+          show_summary: false,
+          question_type: 'standard',
+          question_rules: '{"can_vote_self": false}'
+        })
+        .eq('code', code.toLowerCase())
+    } else {
+      const randomQuestion = questions[Math.floor(Math.random() * questions.length)]
+      const newRoundNumber = roundNumber + 1
+      const roundEndTime = new Date(Date.now() + 15 * 1000).toISOString()
+      
+      await supabase
+        .from('rooms')
+        .update({
+          current_question: randomQuestion.question_text,
+          round_number: newRoundNumber,
+          round_end_time: roundEndTime,
+          show_summary: false,
+          question_type: randomQuestion.question_type,
+          question_rules: randomQuestion.rules
+        })
+        .eq('code', code.toLowerCase())
+    }
     
     // Reset state for new round
     processedRoundRef.current = null
@@ -948,6 +1009,11 @@ function Game() {
         
         <div key={room.current_question} className="w-full bg-zinc-900/50 p-8 rounded-2xl border border-slate-800 mb-8 shadow-xl animate-fade-in-up">
           <h2 className="text-2xl font-bold text-center text-white">{room.current_question}</h2>
+          {room.question_type === 'wildcard' && room.question_rules?.description && (
+            <p className="text-center text-indigo-400 font-semibold mt-4 animate-fade-in-up">
+              {room.question_rules.description}
+            </p>
+          )}
         </div>
         
         <div className="w-full">
@@ -955,13 +1021,15 @@ function Game() {
           <div key={roundNumber} className="grid grid-cols-1 md:grid-cols-2 gap-4" style={hasVoted ? { opacity: 0.5, pointerEvents: 'none' } : {}}>
             {votingPlayers.map((player, index) => {
               const isSelf = player.nickname === myNickname
+              const canVoteSelf = room.question_rules?.can_vote_self || false
+              const isDisabled = hasVoted || (isSelf && !canVoteSelf)
               return (
                 <button
                   key={`${player.nickname}-${roundNumber}`}
-                  className={`text-lg font-semibold py-4 px-6 rounded-xl border-none cursor-pointer transition-all duration-300 ease-in-out hover:bg-indigo-600 active:scale-95 shadow-lg animate-fade-in-up ${isSelf ? 'opacity-50 cursor-not-allowed bg-zinc-700 text-slate-400' : 'bg-indigo-500 text-white shadow-indigo-500/20'}`}
+                  className={`text-lg font-semibold py-4 px-6 rounded-xl border-none cursor-pointer transition-all duration-300 ease-in-out hover:bg-indigo-600 active:scale-95 shadow-lg animate-fade-in-up ${isDisabled ? 'opacity-50 cursor-not-allowed bg-zinc-700 text-slate-400' : 'bg-indigo-500 text-white shadow-indigo-500/20'}`}
                   style={{ animationDelay: `${index * 75}ms`, opacity: 0 }}
                   onClick={() => handleVote(player.nickname)}
-                  disabled={hasVoted || isSelf}
+                  disabled={isDisabled}
                 >
                   {player.nickname} {isSelf && '(You)'}
                 </button>
