@@ -1,7 +1,8 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Routes, Route, useNavigate } from 'react-router-dom'
 import { supabase } from './lib/supabase'
 import { assignRandomEmoji } from './lib/emojis'
+import { getSessionId, clearSessionId, hasSessionId } from './lib/session'
 import HostLobby from './pages/HostLobby'
 import PlayerLobby from './pages/PlayerLobby'
 import Game from './pages/Game'
@@ -290,6 +291,97 @@ function Home() {
 }
 
 function App() {
+  const navigate = useNavigate()
+  const [sessionChecked, setSessionChecked] = useState(false)
+
+  useEffect(() => {
+    const checkSession = async () => {
+      console.log('=== APP LOAD - CHECKING FOR EXISTING SESSION ===')
+      
+      // BRANCH 2: No Session ID - Create new one
+      if (!hasSessionId()) {
+        getSessionId()
+        console.log('=== NO EXISTING SESSION - NEW SESSION CREATED ===')
+        setSessionChecked(true)
+        return
+      }
+
+      // BRANCH 1: Session ID Exists - Check if associated with active player
+      const sessionId = getSessionId()
+      console.log('=== SESSION ID EXISTS - CHECKING PLAYER ASSOCIATION ===', { sessionId })
+
+      const { data: existingPlayer, error: sessionError } = await supabase
+        .from('players')
+        .select('*, rooms(*)')
+        .eq('session_id', sessionId)
+        .maybeSingle()
+
+      console.log('=== SESSION CHECK RESULT ===', { existingPlayer, sessionError })
+
+      if (sessionError) {
+        console.error('=== SESSION CHECK ERROR ===', sessionError)
+        // On error, clear session and start fresh
+        clearSessionId()
+        getSessionId()
+        setSessionChecked(true)
+        return
+      }
+
+      if (!existingPlayer) {
+        console.log('=== NO ACTIVE PLAYER FOR SESSION - ROUTING TO HOME ===')
+        setSessionChecked(true)
+        return
+      }
+
+      // Player exists - check room status
+      console.log('=== ACTIVE PLAYER FOUND - CHECKING ROOM STATUS ===', {
+        roomCode: existingPlayer.room_code,
+        roomStatus: existingPlayer.rooms?.status
+      })
+
+      if (!existingPlayer.rooms) {
+        console.log('=== PLAYER HAS NO ROOM - ROUTING TO HOME ===')
+        setSessionChecked(true)
+        return
+      }
+
+      const roomStatus = existingPlayer.rooms.status
+      const roomCode = existingPlayer.room_code
+
+      // Route based on room status
+      if (roomStatus === 'ended') {
+        console.log('=== ROOM ENDED - GENERATING NEW SESSION ===')
+        clearSessionId()
+        getSessionId()
+        setSessionChecked(true)
+      } else if (roomStatus === 'waiting') {
+        console.log('=== ROOM WAITING - ROUTING TO LOBBY ===')
+        const isHost = existingPlayer.rooms.host === existingPlayer.nickname
+        localStorage.setItem('nickname', existingPlayer.nickname)
+        localStorage.setItem('roomCode', roomCode)
+        localStorage.setItem('isHost', isHost ? 'true' : 'false')
+        navigate(isHost ? `/host/${roomCode}` : `/lobby/${roomCode}`)
+      } else if (roomStatus === 'playing') {
+        console.log('=== ROOM PLAYING - ROUTING TO GAME ===')
+        const isHost = existingPlayer.rooms.host === existingPlayer.nickname
+        localStorage.setItem('nickname', existingPlayer.nickname)
+        localStorage.setItem('roomCode', roomCode)
+        localStorage.setItem('isHost', isHost ? 'true' : 'false')
+        navigate(`/game/${roomCode}${isHost ? '?host=true' : ''}`)
+      } else {
+        console.log('=== UNKNOWN ROOM STATUS - ROUTING TO HOME ===')
+        setSessionChecked(true)
+      }
+    }
+
+    checkSession()
+  }, [navigate])
+
+  // Don't render routes until session check is complete
+  if (!sessionChecked) {
+    return null
+  }
+
   return (
     <Routes>
       <Route path="/" element={<Home />} />
